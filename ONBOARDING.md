@@ -16,69 +16,74 @@ inbredu · powiadomienia i ulubione.
 
 ## Stack (skrót)
 
-React + Vite + TypeScript (frontend) · Flask + Flask-SocketIO (backend) · PostgreSQL · pełna tabela
-w `CLAUDE.md`.
+**Wszystko serwowane przez Flaska** (jeden codebase, jeden deployment):
+
+- **Frontend:** Jinja2 + Bootstrap 5 + Alpine.js + Fetch API + Socket.IO client + Leaflet (mapa)
+- **Backend:** Flask v3 + Flask-SocketIO + SQLAlchemy + Flask-Migrate + Flask-Login + Pydantic + Swagger
+- **Baza:** **SQLite** (plik w repo lokalnie, w `~/data/tindog.db` na AGH lab; ten sam silnik co Lab 9)
+- **Pliki (zdjęcia, PDF rodowodów):** Supabase Storage lub Cloudinary (HTTPS outbound); fallback lokalny katalog `~/uploads/` na AGH lab, jeśli outbound HTTPS blocked
+- **Hosting:** **AGH lab** (`*.lab.kis.agh.edu.pl`, „Proxy to standalone app server") — pełna tabela
+  z numerami labów jest w `CLAUDE.md`.
 
 ## Wymagania wstępne
 
-- **Python 3.11+** i **Node.js 20+**
+- **Python 3.11+**, `pip`, `venv`
 - **Git** + konto GitHub
-- Konta (darmowe, zakładamy zespołowo): **Neon** (Postgres), **Render** (backend), **Vercel** (frontend),
-  **Supabase** lub **Cloudinary** (pliki)
-- **GitHub Student Pack** — daje m.in. darmową domenę `.me` (Namecheap) na rok. Potrzebujemy jej, żeby
-  front i back stały na subdomenach jednej domeny (`app.…` / `api.…`) — inaczej cookie sesji jest
-  blokowane jako third-party.
+- Konto **Supabase** lub **Cloudinary** (storage plików) — opcjonalnie; klucze do współdzielonego `.env`
+  od osoby A. Jeśli AGH blokuje HTTPS outbound, używamy lokalnego katalogu na AGH lab.
+- Konto **AGH lab** (każdy ma swoje); deployment idzie na konto wskazanej osoby (np. `antttpe`)
+- **Baza:** nic nie instalujesz. SQLite to plik tworzony automatycznie przez Alembic przy `flask db upgrade`.
 
 ## Uruchomienie lokalne (po utworzeniu scaffoldingu)
 
 ```bash
-# 1. Backend
-cd backend
 python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env             # uzupełnij wartości (patrz niżej)
-flask db upgrade                 # utwórz schemat w bazie
-flask run                        # http://localhost:5000
+source .venv/bin/activate              # Windows: .venv\Scripts\activate
+pip install -r requirements-dev.txt    # runtime + ruff/pytest/pre-commit
+pre-commit install                     # hooki: ruff, format, trailing-whitespace
+cp .env.example .env                   # uzupełnij SECRET_KEY (patrz niżej)
+python wsgi.py                         # http://localhost:5001 (REST + szablony + Socket.IO)
+                                        # 5001 zamiast 5000, bo macOS AirPlay Receiver zajmuje 5000
 
-# 2. Frontend (w drugim terminalu)
-cd frontend
-npm install
-cp .env.example .env             # ustaw adres API
-npm run dev                      # http://localhost:5173
+# Po dodaniu pierwszych modeli SQLAlchemy:
+# flask db init                        (jednorazowo, twórca migracji)
+# flask db migrate -m "init"           (po każdej zmianie modeli)
+# flask db upgrade                     (każdy w zespole po pull, jeśli pojawiły się nowe migracje)
 ```
+
+Tyle. **Nie ma osobnego serwera frontu** — Flask serwuje wszystko. Używamy `python wsgi.py`,
+a nie `flask run`, bo `flask run` (Werkzeug) nie obsługuje WebSocketów poprawnie.
 
 ### Zmienne środowiskowe
 
-`backend/.env`:
+`.env`:
 ```
-FLASK_APP=app
+FLASK_APP=wsgi:app
 FLASK_DEBUG=1
 SECRET_KEY=<długi losowy ciąg>
-DATABASE_URL=postgresql://...        # connection string z Neon (lub lokalny Postgres)
-FRONTEND_ORIGIN=http://localhost:5173
-STORAGE_...=<klucze do Supabase/Cloudinary>
-```
-
-`frontend/.env`:
-```
-VITE_API_URL=http://localhost:5000
+DATABASE_URL=sqlite:///instance/tindog.db          # lokalnie; na AGH lab: sqlite:////home/<login>/data/tindog.db
+STORAGE_PROVIDER=local                              # albo supabase / cloudinary
+# Jeśli storage zewnętrzny:
+# SUPABASE_URL=...
+# SUPABASE_SERVICE_KEY=...
 ```
 
 > Plików `.env` **nie commitujemy** — w repo trzymamy tylko `.env.example` z pustymi wartościami.
 
 ## Podział pracy (wstępny, do ustalenia na spotkaniu)
 
-- **Osoba A — Auth & bezpieczeństwo:** rejestracja/logowanie (sesja httpOnly, Flask-Login, argon2),
-  użytkownik, CRUD hodowli, wspólna warstwa walidacji Pydantic, CORS/rate limiting.
-- **Osoba B — Zwierzęta & rodowody:** model zwierzęcia, graf rodowodu, dokumenty + weryfikacja,
-  algorytm dopasowań i współczynnik inbredu.
-- **Osoba C — Frontend rdzeń:** layout/design system, lista hodowli (filtry, paginacja), profile,
-  przeglądanie i filtrowanie zwierząt, mapa (Leaflet).
-- **Osoba D — Czas rzeczywisty:** czat WebSocket (Flask-SocketIO + klient), powiadomienia, ulubione,
-  frontend czatu.
+- **Osoba A — Auth, bezpieczeństwo, fundament:** rejestracja/logowanie (sesja httpOnly, Flask-Login,
+  argon2), użytkownik, CRUD hodowli, wspólna warstwa walidacji Pydantic, CSRF, rate limiting, konfiguracja
+  Swaggera.
+- **Osoba B — Zwierzęta, rodowody, logika domenowa:** model zwierzęcia, graf rodowodu, dokumenty +
+  weryfikacja, algorytm dopasowań i współczynnik inbredu.
+- **Osoba C — Widoki i wygląd:** szablony Jinja2, własna paleta na bazie Bootstrap, lista hodowli
+  (filtry, paginacja), profile hodowli i zwierząt, mapa (Leaflet), strona startowa.
+- **Osoba D — Czas rzeczywisty i interakcje:** czat Flask-SocketIO + klient Socket.IO, powiadomienia,
+  ulubione, interaktywne kawałki Alpine.js (filtry, modale, formularze AJAX-owe).
 
-Warstwa wspólna (modele bazy, schematy Pydantic, typy TS) ustalana razem na początku, żeby się nie blokować.
+Warstwa wspólna (modele bazy, schematy Pydantic, layout Jinja2) ustalana razem na początku, żeby się
+nie blokować.
 
 ## Workflow Git
 
@@ -86,9 +91,29 @@ Warstwa wspólna (modele bazy, schematy Pydantic, typy TS) ustalana razem na poc
 - Każda zmiana wchodzi przez **Pull Request** z przeglądem przynajmniej jednej osoby.
 - Małe, częste PR-y > jeden wielki.
 
+## Deployment na AGH lab (skrót)
+
+Repo na AGH lab klonujemy do `~/tindog/`. Demo z Lab 9 w `~/app/` zostaje nietknięte (referencja
+przy obronie). Na socket `~/app.sock` słucha tylko jeden gunicorn na raz — jak deployujemy nasz,
+demo „schodzi z anteny", i odwrotnie.
+
+1. Wybrać konfigurację **„Proxy to standalone app server"** na panelu AGH lab.
+2. `ssh <login>@lab.kis.agh.edu.pl`; pierwszy raz: `git clone <repo> ~/tindog && cd ~/tindog && python -m venv .venv`.
+3. `source .venv/bin/activate && pip install -r requirements.txt && flask db upgrade`.
+4. `rsync -a app/static/ ~/public_html/` — statyki dla proxy uczelni.
+5. Wystartować gunicorna słuchającego na `~/app.sock`:
+   ```bash
+   gunicorn -k gevent -w 1 --bind unix:$HOME/app.sock wsgi:app
+   ```
+6. Otworzyć `https://<login>.lab.kis.agh.edu.pl` i sprawdzić, czy Socket.IO łączy się przez WS
+   (DevTools → Network → WS). Jeśli proxy nie przepuszcza upgrade, klient automatycznie spadnie na
+   long-polling — czat działa tak czy inaczej.
+
 ## Zasady, o których pamiętamy od pierwszego dnia
 
-- **Walidacja wejścia i bezpieczeństwo to priorytet oceny** — czytaj sekcję bezpieczeństwa w `CLAUDE.md`.
+- **Walidacja wejścia i bezpieczeństwo to priorytet oceny** (Lab 9) — czytaj sekcję bezpieczeństwa
+  w `CLAUDE.md`.
 - **Rozumiej kod, który commitujesz.** Prowadzący będzie przepytywał z fragmentów aplikacji. Jeśli LLM coś
-  wygenerował, a Ty nie rozumiesz — popraw prompt i kod, aż zrozumiesz.
+  wygenerował, a Ty nie rozumiesz — popraw prompt i kod, aż zrozumiesz. Stack jest celowo dobrany
+  pod programy labów, żeby każdy fragment dało się obronić.
 - Kod czytelny, identyfikatory po angielsku, komentarze po polsku w nieoczywistych miejscach.

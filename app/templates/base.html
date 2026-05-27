@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Hodowla{% endblock %}</title>
+
+  {# Bootstrap 5 (Lab 3) — przez CDN; docelowo można zhostować lokalnie. #}
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  {# Typografia: serif do nagłówków, sans do treści. Branżowo, nie randkowo. #}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+
+  {# Alpine.js (Lab 4) — `defer` obowiązkowo, inaczej x-data odpali się przed parsowaniem DOM. #}
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg border-bottom">
+    <div class="container">
+      <a class="navbar-brand fw-semibold" href="{{ url_for('main.index') }}">Hodowla</a>
+    </div>
+  </nav>
+
+  <main class="container py-5">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="border-top py-3 mt-5 text-center text-muted small">
+    Projekt zaliczeniowy WWW · AGH SEM4
+  </footer>
+
+  {# Socket.IO client (Lab 8) — wczytujemy na końcu body, żeby nie blokować renderu. #}
+  <script src="https://cdn.jsdelivr.net/npm/socket.io@4.7.5/client-dist/socket.io.min.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

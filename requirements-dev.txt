@@ -1,0 +1,7 @@
+# Narzędzia deweloperskie — instalujemy tylko lokalnie, nie na produkcji.
+-r requirements.txt
+
+ruff>=0.6
+pre-commit>=3.8
+pytest>=8.0
+pytest-flask>=1.3

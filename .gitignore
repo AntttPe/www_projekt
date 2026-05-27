@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.tox/
+.coverage
+htmlcov/
+
+# Flask / SQLAlchemy — instance/ trzyma lokalną bazę i sekrety, NIE wchodzi do repo
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Env i sekrety
+.env
+.env.local
+.env.*.local
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Build / dist
+*.egg-info/
+dist/
+build/
+
+# Logi
+*.log

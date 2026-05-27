@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Hodowla — status{% endblock %}
+
+{% block content %}
+<section class="hero text-center mb-5">
+  <h1 class="display-5 mb-2">Hodowla</h1>
+  <p class="lead text-muted mb-0">Profesjonalna platforma dla hodowców zwierząt.</p>
+</section>
+
+{#
+  Pociskiem smugowym przez całą rurę:
+  - Flask świeci, bo widzisz tę stronę.
+  - SQLite świeci, jeśli `SELECT 1` w handlerze poszedł (`db_ok` przekazane z routea).
+  - Socket.IO świeci po odebraniu eventu `connect` z serwera, transport (WS lub polling)
+    pokazujemy jako podpis — pozwala stwierdzić, czy proxy AGH przepuszcza WebSocket.
+#}
+<div x-data="statusPanel({{ 'true' if db_ok else 'false' }})" x-init="init()" class="row g-3 justify-content-center">
+  <div class="col-md-3">
+    <div class="card status-card" :class="{ 'status-ok': flask }">
+      <div class="card-body text-center">
+        <div class="status-dot" :class="{ 'on': flask }"></div>
+        <div class="status-label">Flask</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card status-card" :class="{ 'status-ok': dbReady }">
+      <div class="card-body text-center">
+        <div class="status-dot" :class="{ 'on': dbReady }"></div>
+        <div class="status-label">SQLite</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card status-card" :class="{ 'status-ok': socket }">
+      <div class="card-body text-center">
+        <div class="status-dot" :class="{ 'on': socket }"></div>
+        <div class="status-label">Socket.IO</div>
+        <div class="small text-muted mt-1" x-text="transport"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function statusPanel(dbOk) {
+    return {
+      flask: true,        // jeśli ten JS się wykonuje, Flask wyrenderował stronę
+      dbReady: dbOk,
+      socket: false,
+      transport: "łączę…",
+      init() {
+        const s = io();
+        s.on("connect", () => {
+          this.socket = true;
+          // "websocket" oznacza, że proxy AGH przepuszcza upgrade.
+          // "polling" oznacza fallback long-polling — czat zadziała tak czy inaczej.
+          this.transport = s.io.engine.transport.name;
+        });
+        s.on("disconnect", () => { this.socket = false; this.transport = "rozłączony"; });
+        s.on("pong_test", (data) => console.log("pong z serwera:", data));
+        s.emit("ping_test", { hello: "from client" });
+      },
+    };
+  }
+</script>
+{% endblock %}

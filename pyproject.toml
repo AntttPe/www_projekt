@@ -1,0 +1,28 @@
+[project]
+name = "tindog"
+version = "0.0.1"
+description = "Aplikacja webowa dla hodowców zwierząt — projekt zaliczeniowy WWW (AGH)"
+requires-python = ">=3.11"
+
+# Konfiguracja ruff (linter + formatter). Black nie jest potrzebny — ruff format jest kompatybilny.
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+# E,F: pyflakes/pycodestyle; I: sortowanie importów; B: bugbear; UP: pyupgrade
+# S: bandit (bezpieczeństwo — istotne pod Lab 9); C4: comprehensions; SIM: simplify
+select = ["E", "F", "I", "B", "UP", "S", "C4", "SIM"]
+# S101: assert dozwolony (potrzebny w testach i w prostych checkach)
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S"]            # w testach luzujemy bandita
+"migrations/**" = ["E501"]    # autogenerowane migracje miewają długie linie
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q"
