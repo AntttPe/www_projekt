@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edytuj hodowlę" if farm else "Utwórz hodowlę" }} — Hodowla{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 720px;">
+  <p class="text-muted mb-1" style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.78rem;">Profil hodowli</p>
+  <h1 style="font-size: 2.2rem;">{{ "Edytuj profil" if farm else "Utwórz profil hodowli" }}</h1>
+  <p class="text-soft mb-4">Im więcej szczegółów dodasz, tym łatwiej znajdą Cię inni hodowcy.</p>
+
+  <form method="post" novalidate class="info-card">
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+      {{ form.name.label(class="form-label") }}
+      {{ form.name(class="form-control") }}
+      {% for e in form.name.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        {{ form.species.label(class="form-label") }}
+        {{ form.species(class="form-select") }}
+      </div>
+      <div class="col-md-6">
+        {{ form.voivodeship.label(class="form-label") }}
+        {{ form.voivodeship(class="form-select") }}
+      </div>
+    </div>
+
+    <div class="mb-3 mt-3">
+      {{ form.city.label(class="form-label") }}
+      {{ form.city(class="form-control") }}
+    </div>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        {{ form.latitude.label(class="form-label") }}
+        {{ form.latitude(class="form-control", step="any", placeholder="np. 52.2297") }}
+      </div>
+      <div class="col-md-6">
+        {{ form.longitude.label(class="form-label") }}
+        {{ form.longitude(class="form-control", step="any", placeholder="np. 21.0122") }}
+      </div>
+    </div>
+
+    <div class="mb-3 mt-3">
+      {{ form.description.label(class="form-label") }}
+      {{ form.description(class="form-control", rows=5, placeholder="O hodowli, linii rodowodowej, podejściu do selekcji...") }}
+    </div>
+
+    <h4 class="mt-4" style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.85rem; color: var(--color-muted);">Kontakt</h4>
+    <div class="row g-3">
+      <div class="col-md-6">
+        {{ form.contact_email.label(class="form-label") }}
+        {{ form.contact_email(class="form-control", placeholder="kontakt@...") }}
+        {% for e in form.contact_email.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-6">
+        {{ form.contact_phone.label(class="form-label") }}
+        {{ form.contact_phone(class="form-control", placeholder="+48 ...") }}
+      </div>
+    </div>
+    <div class="mt-3">
+      {{ form.website.label(class="form-label") }}
+      {{ form.website(class="form-control", placeholder="https://") }}
+      {% for e in form.website.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div class="d-flex gap-2 justify-content-end mt-4">
+      {% if farm %}
+        <a href="{{ url_for('farms.farm_profile', farm_id=farm.id) }}" class="btn btn-light">Anuluj</a>
+      {% else %}
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-light">Anuluj</a>
+      {% endif %}
+      {{ form.submit(class="btn btn-primary") }}
+    </div>
+  </form>
+</div>
+{% endblock %}

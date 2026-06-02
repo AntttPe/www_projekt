@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Mapa hodowli — Hodowla{% endblock %}
+
+{% block head_extra %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="d-flex justify-content-between align-items-baseline mb-4 flex-wrap gap-3">
+    <div>
+      <p class="text-muted mb-1" style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.78rem;">Geografia</p>
+      <h1 style="font-size: 2.5rem;">Mapa hodowli</h1>
+      <p class="text-soft mb-0">{{ farms_payload|length }} hodowli na mapie</p>
+    </div>
+    <form method="get" class="d-flex gap-2">
+      <select name="species" class="form-select" onchange="this.form.submit()">
+        <option value="">Wszystkie gatunki</option>
+        {% for v, l in species_choices %}
+          <option value="{{ v }}" {% if active_species == v %}selected{% endif %}>{{ l }}</option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+
+  <div id="map"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const farms = {{ farms_payload|tojson }};
+  const map = L.map("map").setView([52.0, 19.5], 6);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap contributors",
+    maxZoom: 19,
+  }).addTo(map);
+
+  farms.forEach((f) => {
+    const verifiedBadge = f.is_verified
+      ? '<span style="background:#c89b3c;color:#2a2520;padding:2px 8px;font-size:0.72rem;border-radius:4px;margin-left:6px;">Zweryfikowana</span>'
+      : "";
+    const popup = `
+      <div style="font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 600;">
+        ${f.name}${verifiedBadge}
+      </div>
+      <div style="font-family: 'Inter', sans-serif; color: #5a4f44; font-size: 0.85rem; margin: 4px 0;">
+        ${f.species_label}${f.city ? " · " + f.city : ""}
+      </div>
+      <a href="${f.url}" style="color:#2d5a3d;font-weight:500;">Zobacz profil &rarr;</a>
+    `;
+    L.marker([f.lat, f.lng]).addTo(map).bindPopup(popup);
+  });
+</script>
+{% endblock %}

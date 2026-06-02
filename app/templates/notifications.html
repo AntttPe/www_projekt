@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Powiadomienia — Hodowla{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 720px;">
+  <div class="d-flex justify-content-between align-items-baseline mb-4">
+    <h1 style="font-size: 2.2rem;">Powiadomienia</h1>
+    {% if items %}
+      <form method="post" action="{{ url_for('main.mark_all_read') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <button class="btn btn-light btn-sm">Oznacz wszystkie jako przeczytane</button>
+      </form>
+    {% endif %}
+  </div>
+
+  {% if items %}
+    <div class="info-card" style="padding: 0;">
+      {% for n in items %}
+        <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color: var(--color-border) !important; {% if not n.is_read %}background: var(--color-primary-soft);{% endif %}">
+          <div>
+            {% if n.type == 'new_message' %}
+              <strong>{{ n.payload.from }}</strong> napisał:
+              <span class="text-soft">„{{ n.payload.preview }}"</span>
+              {% if n.payload.conversation_id %}
+                <a href="{{ url_for('chat.chat_index', conversation_id=n.payload.conversation_id) }}" class="ms-2">Otwórz czat &rarr;</a>
+              {% endif %}
+            {% else %}
+              {{ n.type }} — {{ n.payload|tojson }}
+            {% endif %}
+            <div class="text-muted small mt-1">{{ n.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+          </div>
+          {% if not n.is_read %}
+            <form method="post" action="{{ url_for('main.mark_read', notif_id=n.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <button class="btn btn-light btn-sm">Oznacz</button>
+            </form>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <i class="bi bi-bell"></i>
+      <p>Brak powiadomień.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

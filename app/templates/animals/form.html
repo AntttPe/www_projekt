@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edytuj zwierzę" if animal else "Dodaj zwierzę" }} — Hodowla{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 720px;">
+  <p class="text-muted mb-1" style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.78rem;">{{ farm.name }}</p>
+  <h1 style="font-size: 2.2rem;">{{ "Edytuj: " + animal.name if animal else "Dodaj zwierzę" }}</h1>
+
+  <form method="post" novalidate class="info-card">
+    {{ form.hidden_tag() }}
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        {{ form.name.label(class="form-label") }}
+        {{ form.name(class="form-control") }}
+        {% for e in form.name.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-6">
+        {{ form.species.label(class="form-label") }}
+        {{ form.species(class="form-select") }}
+      </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+      <div class="col-md-6">
+        {{ form.breed.label(class="form-label") }}
+        {{ form.breed(class="form-control") }}
+        {% for e in form.breed.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-3">
+        {{ form.sex.label(class="form-label") }}
+        {{ form.sex(class="form-select") }}
+      </div>
+      <div class="col-md-3">
+        {{ form.birth_date.label(class="form-label") }}
+        {{ form.birth_date(class="form-control") }}
+      </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+      <div class="col-md-6">
+        {{ form.color.label(class="form-label") }}
+        {{ form.color(class="form-control", placeholder="np. Siwa") }}
+      </div>
+      <div class="col-md-6">
+        {{ form.registration_number.label(class="form-label") }}
+        {{ form.registration_number(class="form-control", placeholder="np. ZKwP-BC-21-122") }}
+      </div>
+    </div>
+
+    <div class="mt-3">
+      {{ form.title.label(class="form-label") }}
+      {{ form.title(class="form-control", placeholder="np. Champion Polski") }}
+    </div>
+
+    <div class="mt-3">
+      {{ form.description.label(class="form-label") }}
+      {{ form.description(class="form-control", rows=4) }}
+    </div>
+
+    <div class="form-check mt-3">
+      {{ form.available_for_breeding(class="form-check-input") }}
+      {{ form.available_for_breeding.label(class="form-check-label") }}
+    </div>
+
+    <h4 class="mt-4" style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.85rem; color: var(--color-muted);">Rodowód</h4>
+    <p class="text-soft small">Wybierz rodziców z istniejącej bazy — przyda się do liczenia inbredu i sugerowania par.</p>
+    <div class="row g-3">
+      <div class="col-md-6">
+        {{ form.sire_id.label(class="form-label") }}
+        {{ form.sire_id(class="form-select") }}
+      </div>
+      <div class="col-md-6">
+        {{ form.dam_id.label(class="form-label") }}
+        {{ form.dam_id(class="form-select") }}
+      </div>
+    </div>
+
+    <div class="d-flex gap-2 justify-content-end mt-4">
+      <a href="{{ url_for('animals.animal_profile', animal_id=animal.id) if animal else url_for('main.dashboard') }}" class="btn btn-light">Anuluj</a>
+      {{ form.submit(class="btn btn-primary") }}
+    </div>
+  </form>
+</div>
+{% endblock %}

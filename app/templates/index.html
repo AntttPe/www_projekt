@@ -1,69 +1,116 @@
 {% extends "base.html" %}
-{% block title %}Hodowla — status{% endblock %}
+{% block title %}Hodowla — profesjonalna platforma dla hodowców{% endblock %}
 
 {% block content %}
-<section class="hero text-center mb-5">
-  <h1 class="display-5 mb-2">Hodowla</h1>
-  <p class="lead text-muted mb-0">Profesjonalna platforma dla hodowców zwierząt.</p>
+<section class="hero">
+  <div class="container">
+    <h1>Hodowla<span class="accent">.</span></h1>
+    <p class="lead">
+      Profesjonalna platforma dla hodowców psów, koni i kotów.
+      Katalog rodowodów, weryfikacja, dopasowania chroniące przed inbredem.
+    </p>
+    <div class="hero-actions">
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Mój panel</a>
+      {% else %}
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Załóż konto hodowcy</a>
+      {% endif %}
+      <a href="{{ url_for('farms.list_farms') }}" class="btn btn-outline-primary">Przeglądaj hodowle</a>
+    </div>
+  </div>
 </section>
 
-{#
-  Pociskiem smugowym przez całą rurę:
-  - Flask świeci, bo widzisz tę stronę.
-  - SQLite świeci, jeśli `SELECT 1` w handlerze poszedł (`db_ok` przekazane z routea).
-  - Socket.IO świeci po odebraniu eventu `connect` z serwera, transport (WS lub polling)
-    pokazujemy jako podpis — pozwala stwierdzić, czy proxy AGH przepuszcza WebSocket.
-#}
-<div x-data="statusPanel({{ 'true' if db_ok else 'false' }})" x-init="init()" class="row g-3 justify-content-center">
-  <div class="col-md-3">
-    <div class="card status-card" :class="{ 'status-ok': flask }">
-      <div class="card-body text-center">
-        <div class="status-dot" :class="{ 'on': flask }"></div>
-        <div class="status-label">Flask</div>
+<section class="section">
+  <div class="container">
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-value">{{ stats.farms }}</div>
+        <div class="stat-label">Hodowli</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">{{ stats.animals }}</div>
+        <div class="stat-label">Zwierząt z rodowodem</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">{{ stats.verified }}</div>
+        <div class="stat-label">Zweryfikowanych hodowli</div>
       </div>
     </div>
   </div>
-  <div class="col-md-3">
-    <div class="card status-card" :class="{ 'status-ok': dbReady }">
-      <div class="card-body text-center">
-        <div class="status-dot" :class="{ 'on': dbReady }"></div>
-        <div class="status-label">SQLite</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="card status-card" :class="{ 'status-ok': socket }">
-      <div class="card-body text-center">
-        <div class="status-dot" :class="{ 'on': socket }"></div>
-        <div class="status-label">Socket.IO</div>
-        <div class="small text-muted mt-1" x-text="transport"></div>
-      </div>
-    </div>
-  </div>
-</div>
-{% endblock %}
+</section>
 
-{% block scripts %}
-<script>
-  function statusPanel(dbOk) {
-    return {
-      flask: true,        // jeśli ten JS się wykonuje, Flask wyrenderował stronę
-      dbReady: dbOk,
-      socket: false,
-      transport: "łączę…",
-      init() {
-        const s = io();
-        s.on("connect", () => {
-          this.socket = true;
-          // "websocket" oznacza, że proxy AGH przepuszcza upgrade.
-          // "polling" oznacza fallback long-polling — czat zadziała tak czy inaczej.
-          this.transport = s.io.engine.transport.name;
-        });
-        s.on("disconnect", () => { this.socket = false; this.transport = "rozłączony"; });
-        s.on("pong_test", (data) => console.log("pong z serwera:", data));
-        s.emit("ping_test", { hello: "from client" });
-      },
-    };
-  }
-</script>
+{% if featured %}
+<section class="section section-tight">
+  <div class="container">
+    <div class="section-title">
+      <h2>Wyróżnione hodowle</h2>
+      <a href="{{ url_for('farms.list_farms') }}" class="section-link">Wszystkie hodowle &rarr;</a>
+    </div>
+    <div class="row g-4">
+      {% for farm in featured %}
+        <div class="col-lg-4 col-md-6">
+          <article class="entity-card">
+            <div class="photo species-{{ farm.species }}">
+              <i class="bi bi-{{ {'dog': 'house-heart', 'horse': 'flower1', 'cat': 'moon-stars'}[farm.species] }}"></i>
+              {% if farm.is_verified %}
+                <span class="badge-verified"><i class="bi bi-patch-check-fill"></i> Zweryfikowana</span>
+              {% endif %}
+            </div>
+            <div class="body">
+              <h3><a href="{{ url_for('farms.farm_profile', farm_id=farm.id) }}">{{ farm.name }}</a></h3>
+              <div class="meta">
+                <span><i class="bi bi-tag"></i> {{ farm.species_label }}</span>
+                {% if farm.city %}<span><i class="bi bi-geo-alt"></i> {{ farm.city }}</span>{% endif %}
+              </div>
+              <p class="description">{{ farm.description or "Hodowla nie dodała jeszcze opisu." }}</p>
+              <div class="footer">
+                <span>{{ farm.animals|length }} zwierząt</span>
+                <a href="{{ url_for('farms.farm_profile', farm_id=farm.id) }}" class="text-decoration-none">Zobacz &rarr;</a>
+              </div>
+            </div>
+          </article>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section">
+  <div class="container">
+    <div class="section-title">
+      <h2>Co znajdziesz w platformie</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="info-card h-100">
+          <i class="bi bi-diagram-3" style="font-size: 2rem; color: var(--color-primary);"></i>
+          <h3 class="mt-3">Rodowody</h3>
+          <p class="mb-0 text-soft">Graf przodków zwierząt, czytelnie pokazany do czterech pokoleń.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="info-card h-100">
+          <i class="bi bi-shield-check" style="font-size: 2rem; color: var(--color-primary);"></i>
+          <h3 class="mt-3">Weryfikacja</h3>
+          <p class="mb-0 text-soft">Odznaka „Zweryfikowana hodowla" dla podmiotów z potwierdzoną dokumentacją.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="info-card h-100">
+          <i class="bi bi-arrow-left-right" style="font-size: 2rem; color: var(--color-primary);"></i>
+          <h3 class="mt-3">Dopasowania</h3>
+          <p class="mb-0 text-soft">Algorytm liczy współczynnik inbredu i ostrzega przed niepożądanymi parami.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="info-card h-100">
+          <i class="bi bi-chat-dots" style="font-size: 2rem; color: var(--color-primary);"></i>
+          <h3 class="mt-3">Czat z hodowcami</h3>
+          <p class="mb-0 text-soft">Bezpośrednie wiadomości w czasie rzeczywistym, bez pośredników.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}

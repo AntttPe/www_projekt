@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Zaloguj się — Hodowla{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="auth-shell">
+    <h1>Zaloguj się</h1>
+    <p class="subtitle">Witaj ponownie w swojej hodowli.</p>
+
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+
+      <div class="form-group">
+        {{ form.email.label(class="form-label") }}
+        {{ form.email(class="form-control", placeholder="ty@hodowla.pl", autofocus=True) }}
+        {% for error in form.email.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="form-group">
+        {{ form.password.label(class="form-label") }}
+        {{ form.password(class="form-control", placeholder="••••••••") }}
+        {% for error in form.password.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="submit-row">
+        {{ form.submit(class="btn btn-primary w-100") }}
+      </div>
+    </form>
+
+    <p class="alt-link">
+      Nie masz jeszcze konta?
+      <a href="{{ url_for('auth.register') }}">Załóż hodowlę</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Załóż konto — Hodowla{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="auth-shell">
+    <h1>Załóż hodowlę</h1>
+    <p class="subtitle">Dołącz do społeczności hodowców.</p>
+
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+
+      <div class="form-group">
+        {{ form.display_name.label(class="form-label") }}
+        {{ form.display_name(class="form-control", placeholder="Jan Kowalski / Anna Nowak") }}
+        {% for error in form.display_name.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="form-group">
+        {{ form.email.label(class="form-label") }}
+        {{ form.email(class="form-control", placeholder="ty@hodowla.pl") }}
+        {% for error in form.email.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="form-group">
+        {{ form.password.label(class="form-label") }}
+        {{ form.password(class="form-control", placeholder="minimum 8 znaków") }}
+        {% for error in form.password.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="form-group">
+        {{ form.password_confirm.label(class="form-label") }}
+        {{ form.password_confirm(class="form-control") }}
+        {% for error in form.password_confirm.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="submit-row">
+        {{ form.submit(class="btn btn-primary w-100") }}
+      </div>
+    </form>
+
+    <p class="alt-link">
+      Masz już konto?
+      <a href="{{ url_for('auth.login') }}">Zaloguj się</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

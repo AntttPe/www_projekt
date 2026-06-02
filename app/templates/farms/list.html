@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Hodowle — Hodowla{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="d-flex justify-content-between align-items-baseline mb-4 flex-wrap gap-3">
+    <div>
+      <p class="text-muted mb-1" style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.78rem;">Katalog</p>
+      <h1 style="font-size: 2.5rem;">Hodowle</h1>
+      <p class="text-soft mb-0">{{ pagination.total }} {{ "hodowla" if pagination.total == 1 else "hodowli" }}</p>
+    </div>
+    <form method="get" class="d-flex gap-2" style="max-width: 360px;">
+      <input type="search" name="q" value="{{ filters.q }}" class="form-control" placeholder="Szukaj po nazwie lub mieście" />
+      <button class="btn btn-primary" type="submit">Szukaj</button>
+    </form>
+  </div>
+
+  <div class="layout-with-sidebar">
+    <aside class="filter-panel">
+      <form method="get">
+        {# Zachowujemy q jeśli było w URL #}
+        {% if filters.q %}<input type="hidden" name="q" value="{{ filters.q }}" />{% endif %}
+
+        <h4>Gatunek</h4>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="species" value="" id="sp-all" {% if not filters.species %}checked{% endif %} onchange="this.form.submit()" />
+          <label class="form-check-label" for="sp-all">Wszystkie</label>
+        </div>
+        {% for value, label in species_choices %}
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="species" value="{{ value }}" id="sp-{{ value }}" {% if filters.species == value %}checked{% endif %} onchange="this.form.submit()" />
+          <label class="form-check-label" for="sp-{{ value }}">{{ label }}</label>
+        </div>
+        {% endfor %}
+
+        <h4>Województwo</h4>
+        <select name="voivodeship" class="form-select" onchange="this.form.submit()">
+          <option value="">— wszystkie —</option>
+          {% for v in voivodeships if v %}
+            <option value="{{ v }}" {% if filters.voivodeship == v %}selected{% endif %}>{{ v.capitalize() }}</option>
+          {% endfor %}
+        </select>
+
+        <h4>Filtry</h4>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="verified" value="1" id="ver" {% if filters.verified %}checked{% endif %} onchange="this.form.submit()" />
+          <label class="form-check-label" for="ver">Tylko zweryfikowane</label>
+        </div>
+
+        {% if filters.species or filters.voivodeship or filters.verified or filters.q %}
+          <a href="{{ url_for('farms.list_farms') }}" class="btn btn-light btn-sm mt-3 w-100">Wyczyść filtry</a>
+        {% endif %}
+      </form>
+    </aside>
+
+    <section>
+      {% if pagination.items %}
+      <div class="row g-4">
+        {% for farm in pagination.items %}
+          <div class="col-lg-4 col-md-6">
+            <article class="entity-card">
+              <div class="photo species-{{ farm.species }}">
+                <i class="bi bi-{{ {'dog': 'house-heart', 'horse': 'flower1', 'cat': 'moon-stars'}[farm.species] }}"></i>
+                {% if farm.is_verified %}
+                  <span class="badge-verified"><i class="bi bi-patch-check-fill"></i> Zweryfikowana</span>
+                {% endif %}
+              </div>
+              <div class="body">
+                <h3><a href="{{ url_for('farms.farm_profile', farm_id=farm.id) }}">{{ farm.name }}</a></h3>
+                <div class="meta">
+                  <span><i class="bi bi-tag"></i> {{ farm.species_label }}</span>
+                  {% if farm.city %}<span><i class="bi bi-geo-alt"></i> {{ farm.city }}</span>{% endif %}
+                </div>
+                <p class="description">{{ farm.description or "Hodowca nie dodał jeszcze opisu." }}</p>
+                <div class="footer">
+                  <span>{{ farm.animals|length }} zwierząt</span>
+                  {% if current_user.is_authenticated %}
+                    <form method="post" action="{{ url_for('farms.toggle_favorite', farm_id=farm.id) }}" class="d-inline">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                      <button type="submit" class="btn btn-link p-0 text-decoration-none" title="Dodaj/usuń z ulubionych">
+                        <i class="bi bi-{{ 'star-fill' if farm.id in favorited_farm_ids else 'star' }}" style="color: {% if farm.id in favorited_farm_ids %}var(--color-accent){% else %}var(--color-muted){% endif %};"></i>
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
+              </div>
+            </article>
+          </div>
+        {% endfor %}
+      </div>
+
+      {% if pagination.pages > 1 %}
+        <nav class="pagination-wrap" aria-label="Stronicowanie">
+          <ul class="pagination">
+            {% if pagination.has_prev %}
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('farms.list_farms', page=pagination.prev_num, **filters) }}">Poprzednia</a>
+              </li>
+            {% endif %}
+            {% for p in pagination.iter_pages() %}
+              {% if p %}
+                <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                  <a class="page-link" href="{{ url_for('farms.list_farms', page=p, **filters) }}">{{ p }}</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+              {% endif %}
+            {% endfor %}
+            {% if pagination.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('farms.list_farms', page=pagination.next_num, **filters) }}">Następna</a>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+      {% endif %}
+
+      {% else %}
+        <div class="empty-state">
+          <i class="bi bi-search"></i>
+          <p>Brak hodowli spełniających kryteria.</p>
+        </div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

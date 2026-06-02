@@ -9,6 +9,7 @@ flask-wtf>=1.2            # CSRF na formularzach (Lab 9 -> csrf.py)
 flask-limiter>=3.5        # rate limiting na logowaniu i rejestracji
 flask-socketio>=5.3       # czat i powiadomienia (Lab 8)
 pydantic>=2.5             # walidacja wejścia API (Lab 6, Lab 9)
+email-validator>=2.1      # walidator Email() w WTForms
 argon2-cffi>=23.1         # hashowanie haseł
 python-dotenv>=1.0        # ładowanie .env
 

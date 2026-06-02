@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — Hodowla{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="empty-state" style="padding: 5rem 2rem;">
+    <h1 style="font-size: 5rem; color: var(--color-border-strong); margin-bottom: 0.5rem;">{{ code }}</h1>
+    <h2 style="font-size: 1.6rem;">{{ title }}</h2>
+    <p class="text-soft">{{ message }}</p>
+    <a href="{{ url_for('main.index') }}" class="btn btn-primary mt-3">Wróć na stronę główną</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Zwierzęta — Hodowla{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="d-flex justify-content-between align-items-baseline mb-4 flex-wrap gap-3">
+    <div>
+      <p class="text-muted mb-1" style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.78rem;">Katalog</p>
+      <h1 style="font-size: 2.5rem;">Zwierzęta</h1>
+      <p class="text-soft mb-0">{{ pagination.total }} zwierząt w katalogu</p>
+    </div>
+    <form method="get" class="d-flex gap-2" style="max-width: 360px;">
+      <input type="search" name="q" value="{{ filters.q }}" class="form-control" placeholder="Imię lub numer rodowodu" />
+      <button class="btn btn-primary" type="submit">Szukaj</button>
+    </form>
+  </div>
+
+  <div class="layout-with-sidebar">
+    <aside class="filter-panel">
+      <form method="get">
+        {% if filters.q %}<input type="hidden" name="q" value="{{ filters.q }}" />{% endif %}
+
+        <h4>Gatunek</h4>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="species" value="" id="anysp" {% if not filters.species %}checked{% endif %} onchange="this.form.submit()" />
+          <label class="form-check-label" for="anysp">Wszystkie</label>
+        </div>
+        {% for v, l in species_choices %}
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="species" value="{{ v }}" id="sp-{{ v }}" {% if filters.species == v %}checked{% endif %} onchange="this.form.submit()" />
+            <label class="form-check-label" for="sp-{{ v }}">{{ l }}</label>
+          </div>
+        {% endfor %}
+
+        <h4>Płeć</h4>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="sex" value="" id="anysx" {% if not filters.sex %}checked{% endif %} onchange="this.form.submit()" />
+          <label class="form-check-label" for="anysx">Wszystkie</label>
+        </div>
+        {% for v, l in sex_choices %}
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="sex" value="{{ v }}" id="sx-{{ v }}" {% if filters.sex == v %}checked{% endif %} onchange="this.form.submit()" />
+            <label class="form-check-label" for="sx-{{ v }}">{{ l }}</label>
+          </div>
+        {% endfor %}
+
+        <h4>Rasa</h4>
+        <input type="text" name="breed" value="{{ filters.breed }}" class="form-control" placeholder="np. Border Collie" />
+
+        <h4>Dostępność</h4>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="available" value="1" id="av" {% if filters.available %}checked{% endif %} onchange="this.form.submit()" />
+          <label class="form-check-label" for="av">Tylko dostępne do rozrodu</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-sm w-100 mt-3">Zastosuj</button>
+        {% if filters.species or filters.sex or filters.available or filters.breed or filters.q %}
+          <a href="{{ url_for('animals.list_animals') }}" class="btn btn-light btn-sm w-100 mt-2">Wyczyść</a>
+        {% endif %}
+      </form>
+    </aside>
+
+    <section>
+      {% if pagination.items %}
+        <div class="row g-4">
+          {% for animal in pagination.items %}
+            <div class="col-lg-4 col-md-6">
+              <article class="entity-card">
+                <div class="photo species-{{ animal.species }}" style="aspect-ratio: 4/3; font-size: 3rem;">
+                  <i class="bi bi-{{ {'dog': 'bug', 'horse': 'flower1', 'cat': 'moon-stars'}[animal.species] }}"></i>
+                </div>
+                <div class="body">
+                  <h3 style="font-size: 1.2rem;">
+                    <a href="{{ url_for('animals.animal_profile', animal_id=animal.id) }}">{{ animal.name }}</a>
+                  </h3>
+                  <div class="meta">
+                    <span>{{ animal.breed }}</span>
+                    <span>{{ animal.sex_label }}</span>
+                    {% if animal.age_years is not none %}<span>{{ animal.age_years }} lat</span>{% endif %}
+                  </div>
+                  {% if animal.title %}
+                    <p style="font-family: var(--font-serif); font-style: italic; color: var(--color-accent-hover); font-size: 0.9rem; margin: 0.3rem 0;">{{ animal.title }}</p>
+                  {% endif %}
+                  <div class="footer">
+                    {% if animal.farm %}
+                      <a href="{{ url_for('farms.farm_profile', farm_id=animal.farm_id) }}" class="text-decoration-none text-muted">{{ animal.farm.name }}</a>
+                    {% endif %}
+                    {% if animal.available_for_breeding %}
+                      <span class="tag-pill success" style="font-size: 0.72rem;">Dostępny</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </article>
+            </div>
+          {% endfor %}
+        </div>
+
+        {% if pagination.pages > 1 %}
+          <nav class="pagination-wrap">
+            <ul class="pagination">
+              {% if pagination.has_prev %}
+                <li class="page-item">
+                  <a class="page-link" href="{{ url_for('animals.list_animals', page=pagination.prev_num, **filters) }}">Poprzednia</a>
+                </li>
+              {% endif %}
+              {% for p in pagination.iter_pages() %}
+                {% if p %}
+                  <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('animals.list_animals', page=p, **filters) }}">{{ p }}</a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+              {% endfor %}
+              {% if pagination.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="{{ url_for('animals.list_animals', page=pagination.next_num, **filters) }}">Następna</a>
+                </li>
+              {% endif %}
+            </ul>
+          </nav>
+        {% endif %}
+      {% else %}
+        <div class="empty-state">
+          <i class="bi bi-search"></i>
+          <p>Brak zwierząt spełniających kryteria.</p>
+        </div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

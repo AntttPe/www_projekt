@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Dopasowania dla {{ animal.name }} — Hodowla{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <a href="{{ url_for('animals.animal_profile', animal_id=animal.id) }}" class="text-muted text-decoration-none mb-3 d-inline-block">&larr; Wróć do {{ animal.name }}</a>
+
+  <div class="d-flex justify-content-between align-items-baseline flex-wrap gap-3 mb-4">
+    <div>
+      <p class="text-muted mb-1" style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.78rem;">Sugerowane pary</p>
+      <h1 style="font-size: 2.4rem;">Dopasowania dla {{ animal.name }}</h1>
+      <p class="text-soft mb-0">{{ animal.breed }} · {{ animal.sex_label }} · {{ animal.farm.name if animal.farm else "—" }}</p>
+    </div>
+  </div>
+
+  <div class="alert alert-info">
+    <strong>Jak liczymy dopasowanie:</strong> filtrujemy po gatunku, rasie, płci przeciwnej i dostępności do rozrodu;
+    następnie sortujemy po <strong>współczynniku inbredu</strong> potomstwa (im niższy, tym bezpieczniej) i odległości
+    geograficznej. Wzór Wrighta nad grafem przodków do 4 pokoleń.
+  </div>
+
+  {% if suggestions %}
+    {% for s in suggestions %}
+      {% set label, color = risk_label(s.inbreeding) %}
+      <article class="match-row">
+        <div class="avatar lg" title="{{ s.candidate.name }}">{{ s.candidate.name[:1].upper() }}</div>
+        <div>
+          <a href="{{ url_for('animals.animal_profile', animal_id=s.candidate.id) }}" class="candidate-name text-decoration-none">{{ s.candidate.name }}</a>
+          <div class="candidate-sub">{{ s.candidate.breed }} · {{ s.candidate.sex_label }} ·
+            <a href="{{ url_for('farms.farm_profile', farm_id=s.candidate.farm_id) }}" class="text-decoration-none">{{ s.candidate.farm.name }}</a>
+          </div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">{{ (s.inbreeding * 100)|round(2) }}<small>%</small></div>
+          <div class="metric-label">Inbred potomstwa</div>
+          <span class="tag-pill {{ color }}" style="margin-top: 0.3rem;">{{ label }}</span>
+        </div>
+        <div class="metric">
+          <div class="metric-value">{{ s.distance_km|round(0)|int if s.distance_km is not none else "—" }}</div>
+          <div class="metric-label">{% if s.distance_km is not none %}km od Ciebie{% else %}Brak danych geo{% endif %}</div>
+        </div>
+        <div>
+          {% if current_user.is_authenticated %}
+            <form method="post" action="{{ url_for('chat.start_with_user', user_id=s.candidate.farm.owner_id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <button type="submit" class="btn btn-primary">Napisz</button>
+            </form>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary">Zaloguj, aby napisać</a>
+          {% endif %}
+        </div>
+      </article>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <i class="bi bi-search"></i>
+      <p>Nie znaleźliśmy bezpiecznych dopasowań dla tego zwierzęcia.</p>
+      <p class="small">Wymaga: ten sam gatunek i rasa, płeć przeciwna, dostępność do rozrodu, inbred poniżej 6.25%.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

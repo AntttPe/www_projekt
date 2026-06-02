@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}{{ farm.name }} — Hodowla{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <a href="{{ url_for('farms.list_farms') }}" class="text-muted text-decoration-none mb-3 d-inline-block">&larr; Wszystkie hodowle</a>
+
+  <div class="profile-header">
+    <div class="avatar xl">{{ farm.name[:1].upper() }}</div>
+    <div>
+      <h1 style="font-size: 2.6rem; margin-bottom: 0.3rem;">{{ farm.name }}</h1>
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <span class="tag-pill">{{ farm.species_label }}</span>
+        {% if farm.is_verified %}<span class="tag-pill accent"><i class="bi bi-patch-check-fill"></i> Zweryfikowana</span>{% endif %}
+      </div>
+      <div class="meta">
+        {% if farm.city %}<span><i class="bi bi-geo-alt"></i> <strong>{{ farm.city }}</strong>{% if farm.voivodeship %}, {{ farm.voivodeship }}{% endif %}</span>{% endif %}
+        <span><i class="bi bi-collection"></i> <strong>{{ farm.animals|length }}</strong> zwierząt</span>
+        {% if farm.contact_email %}<span><i class="bi bi-envelope"></i> {{ farm.contact_email }}</span>{% endif %}
+      </div>
+    </div>
+    <div class="actions">
+      {% if is_owner %}
+        <a href="{{ url_for('farms.edit_my_farm') }}" class="btn btn-outline-primary">Edytuj profil</a>
+        <a href="{{ url_for('animals.new_animal') }}" class="btn btn-primary">Dodaj zwierzę</a>
+      {% elif current_user.is_authenticated %}
+        <form method="post" action="{{ url_for('chat.start_with_user', user_id=farm.owner_id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <button type="submit" class="btn btn-primary">Napisz wiadomość</button>
+        </form>
+        <form method="post" action="{{ url_for('farms.toggle_favorite', farm_id=farm.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <button type="submit" class="btn btn-outline-primary">
+            <i class="bi bi-{{ 'star-fill' if is_favorited else 'star' }}"></i>
+            {{ "W ulubionych" if is_favorited else "Do ulubionych" }}
+          </button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="profile-grid">
+    <div>
+      <div class="info-card">
+        <h3>O hodowli</h3>
+        <p style="white-space: pre-line;">{{ farm.description or "Brak opisu." }}</p>
+      </div>
+
+      <div class="section-title">
+        <h2>Zwierzęta w hodowli</h2>
+      </div>
+
+      {% if farm.animals %}
+        <div class="row g-3">
+          {% for animal in farm.animals %}
+            <div class="col-md-6">
+              <article class="entity-card">
+                <div class="photo species-{{ animal.species }}" style="aspect-ratio: 3/2; font-size: 2rem;">
+                  <i class="bi bi-{{ {'dog': 'bug', 'horse': 'flower1', 'cat': 'moon-stars'}[animal.species] }}"></i>
+                </div>
+                <div class="body">
+                  <h3 style="font-size: 1.15rem;">
+                    <a href="{{ url_for('animals.animal_profile', animal_id=animal.id) }}">{{ animal.name }}</a>
+                  </h3>
+                  <div class="meta">
+                    <span>{{ animal.breed }}</span>
+                    <span>{{ animal.sex_label }}</span>
+                    {% if animal.age_years is not none %}<span>{{ animal.age_years }} lat</span>{% endif %}
+                  </div>
+                  {% if animal.title %}
+                    <p style="font-family: var(--font-serif); font-style: italic; margin: 0.3rem 0; color: var(--color-accent-hover); font-size: 0.9rem;">{{ animal.title }}</p>
+                  {% endif %}
+                  {% if animal.available_for_breeding %}
+                    <span class="tag-pill success">Dostępny do rozrodu</span>
+                  {% endif %}
+                </div>
+              </article>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <i class="bi bi-collection"></i>
+          <p>Ta hodowla nie ma jeszcze zwierząt w katalogu.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <aside>
+      <div class="info-card">
+        <h3>Kontakt</h3>
+        <dl>
+          {% if farm.contact_email %}<dt>Email</dt><dd>{{ farm.contact_email }}</dd>{% endif %}
+          {% if farm.contact_phone %}<dt>Telefon</dt><dd>{{ farm.contact_phone }}</dd>{% endif %}
+          {% if farm.website %}<dt>Strona WWW</dt><dd><a href="{{ farm.website }}" target="_blank" rel="noopener">{{ farm.website }}</a></dd>{% endif %}
+          {% if farm.city %}<dt>Adres</dt><dd>{{ farm.city }}{% if farm.voivodeship %}, {{ farm.voivodeship }}{% endif %}</dd>{% endif %}
+        </dl>
+      </div>
+
+      {% if farm.latitude and farm.longitude %}
+        <div class="info-card">
+          <h3>Lokalizacja</h3>
+          <div id="mini-map" style="height: 260px; border-radius: var(--radius-md);"></div>
+        </div>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+{% endblock %}
+
+{% block head_extra %}
+{% if farm.latitude and farm.longitude %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if farm.latitude and farm.longitude %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const map = L.map("mini-map", { zoomControl: false }).setView([{{ farm.latitude }}, {{ farm.longitude }}], 11);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap"
+  }).addTo(map);
+  L.marker([{{ farm.latitude }}, {{ farm.longitude }}]).addTo(map).bindPopup({{ farm.name|tojson }});
+</script>
+{% endif %}
+{% endblock %}

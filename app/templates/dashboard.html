@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Mój panel — Hodowla{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="d-flex justify-content-between align-items-baseline mb-4">
+    <div>
+      <p class="text-muted mb-1" style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.78rem;">Mój panel</p>
+      <h1 style="font-size: 2.5rem;">Witaj, {{ current_user.display_name }}</h1>
+    </div>
+    {% if farm %}
+      <a href="{{ url_for('farms.farm_profile', farm_id=farm.id) }}" class="btn btn-outline-primary">Otwórz profil hodowli</a>
+    {% endif %}
+  </div>
+
+  {% if not farm %}
+    <div class="info-card">
+      <h3>Utwórz profil swojej hodowli</h3>
+      <p class="text-soft">Dodaj nazwę, gatunek, lokalizację i opis — Twoje konto stanie się widoczne dla innych hodowców.</p>
+      <a href="{{ url_for('farms.edit_my_farm') }}" class="btn btn-primary">Utwórz hodowlę</a>
+    </div>
+  {% else %}
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="info-card">
+          <h3>{{ farm.name }}</h3>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <span class="tag-pill">{{ farm.species_label }}</span>
+            {% if farm.is_verified %}<span class="tag-pill accent">Zweryfikowana</span>{% endif %}
+            {% if farm.city %}<span class="tag-pill"><i class="bi bi-geo-alt"></i> {{ farm.city }}</span>{% endif %}
+          </div>
+          <p class="text-soft">{{ farm.description or "Brak opisu — kliknij „Edytuj", żeby dodać." }}</p>
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('farms.edit_my_farm') }}" class="btn btn-outline-primary">Edytuj profil</a>
+            <a href="{{ url_for('animals.new_animal') }}" class="btn btn-primary">Dodaj zwierzę</a>
+          </div>
+        </div>
+
+        <div class="section-title">
+          <h2>Moje zwierzęta <span class="text-muted" style="font-size: 1rem;">({{ farm.animals|length }})</span></h2>
+        </div>
+        {% if farm.animals %}
+          <div class="row g-3">
+            {% for animal in farm.animals %}
+              <div class="col-md-6">
+                <article class="entity-card">
+                  <div class="photo species-{{ animal.species }}" style="aspect-ratio: 3/2; font-size: 2rem;">
+                    <i class="bi bi-{{ {'dog': 'bug', 'horse': 'flower1', 'cat': 'moon-stars'}[animal.species] }}"></i>
+                  </div>
+                  <div class="body">
+                    <h3 style="font-size: 1.15rem;"><a href="{{ url_for('animals.animal_profile', animal_id=animal.id) }}">{{ animal.name }}</a></h3>
+                    <div class="meta">
+                      <span>{{ animal.breed }}</span>
+                      <span>{{ animal.sex_label }}</span>
+                      {% if animal.age_years is not none %}<span>{{ animal.age_years }} lat</span>{% endif %}
+                    </div>
+                    {% if animal.available_for_breeding %}
+                      <span class="tag-pill success">Dostępny do rozrodu</span>
+                    {% endif %}
+                  </div>
+                </article>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <i class="bi bi-plus-circle"></i>
+            <p>Nie masz jeszcze żadnych zwierząt w katalogu.</p>
+            <a href="{{ url_for('animals.new_animal') }}" class="btn btn-primary">Dodaj pierwsze</a>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="col-lg-4">
+        <div class="info-card">
+          <h3>Powiadomienia</h3>
+          {% if recent_notifications %}
+            <ul class="list-unstyled mb-0">
+              {% for n in recent_notifications %}
+                <li class="d-flex gap-2 py-2 border-bottom border-light" style="border-color: var(--color-border) !important;">
+                  <i class="bi bi-bell text-muted"></i>
+                  <div>
+                    {% if n.type == 'new_message' %}
+                      <strong>{{ n.payload.from }}</strong> napisał: „{{ n.payload.preview }}"
+                    {% else %}
+                      {{ n.type }}
+                    {% endif %}
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+            <a href="{{ url_for('main.notifications') }}" class="d-block text-center mt-3 text-decoration-none">Wszystkie powiadomienia &rarr;</a>
+          {% else %}
+            <p class="text-muted mb-0">Brak nowych powiadomień.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

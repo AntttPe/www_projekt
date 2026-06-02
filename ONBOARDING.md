@@ -1,6 +1,6 @@
 # Onboarding — aplikacja dla hodowców zwierząt
 
-Witaj w zespole. Ten dokument mówi, **co budujemy, jak postawić projekt lokalnie i kto za co odpowiada.**
+Ten dokument mówi, **co budujemy, jak postawić projekt lokalnie i kto za co odpowiada.**
 Reguły kodu i bezpieczeństwa (które muszą być wspólne) są w `CLAUDE.md`. Model danych w `docs/MODEL_DANYCH.md`.
 
 ## Co budujemy
@@ -42,14 +42,24 @@ source .venv/bin/activate              # Windows: .venv\Scripts\activate
 pip install -r requirements-dev.txt    # runtime + ruff/pytest/pre-commit
 pre-commit install                     # hooki: ruff, format, trailing-whitespace
 cp .env.example .env                   # uzupełnij SECRET_KEY (patrz niżej)
+
+# Migracje (jednorazowo przy świeżym repo / po dodaniu nowych modeli):
+flask db init                          # tylko gdy NIE istnieje katalog migrations/
+flask db migrate -m "init"
+flask db upgrade
+
+# Wgranie przykładowych danych (6 hodowli, ~20 zwierząt z rodowodami):
+flask seed
+
+# Uruchomienie aplikacji:
 python wsgi.py                         # http://localhost:5001 (REST + szablony + Socket.IO)
                                         # 5001 zamiast 5000, bo macOS AirPlay Receiver zajmuje 5000
-
-# Po dodaniu pierwszych modeli SQLAlchemy:
-# flask db init                        (jednorazowo, twórca migracji)
-# flask db migrate -m "init"           (po każdej zmianie modeli)
-# flask db upgrade                     (każdy w zespole po pull, jeśli pojawiły się nowe migracje)
 ```
+
+Konta demonstracyjne (po `flask seed`): wszystkie z hasłem `demo12345`. Np.:
+- `anna@hodowla.test` — Stadnina Wschodni Wiatr (konie arabskie)
+- `marek@hodowla.test` — Border Collies z Pszczyny
+- `julia@hodowla.test` — Kocia Łapka (Maine Coon)
 
 Tyle. **Nie ma osobnego serwera frontu** — Flask serwuje wszystko. Używamy `python wsgi.py`,
 a nie `flask run`, bo `flask run` (Werkzeug) nie obsługuje WebSocketów poprawnie.

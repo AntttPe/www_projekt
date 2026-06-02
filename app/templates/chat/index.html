@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Czat — Hodowla{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 style="font-size: 2.2rem; margin-bottom: 1.5rem;">Czat</h1>
+
+  <div class="chat-shell">
+    <aside class="conv-list">
+      {% if conversations %}
+        {% for conv in conversations %}
+          {% set other = conv.other_user(current_user.id) %}
+          <a href="{{ url_for('chat.chat_index', conversation_id=conv.id) }}"
+             class="conv-item text-decoration-none {{ 'active' if active and active.id == conv.id else '' }}">
+            <span class="avatar">{{ other.display_name[:1].upper() }}</span>
+            <div>
+              <div class="name">{{ other.display_name }}</div>
+              <div class="preview">
+                {% if conv.messages %}
+                  {{ conv.messages[-1].body[:40] }}{% if conv.messages[-1].body|length > 40 %}…{% endif %}
+                {% else %}
+                  <em>Brak wiadomości</em>
+                {% endif %}
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state" style="padding: 2rem 1.5rem;">
+          <i class="bi bi-chat-dots"></i>
+          <p class="mb-0">Brak konwersacji.</p>
+          <p class="small">Wejdź na profil hodowli i kliknij „Napisz wiadomość".</p>
+        </div>
+      {% endif %}
+    </aside>
+
+    <section class="conv-thread">
+      {% if active %}
+        {% set other = active.other_user(current_user.id) %}
+        <header class="head">
+          <span class="avatar" style="margin-right: 0.5rem;">{{ other.display_name[:1].upper() }}</span>
+          {{ other.display_name }}
+        </header>
+
+        <div id="messages" class="messages" data-conversation-id="{{ active.id }}" data-current-user-id="{{ current_user.id }}">
+          {% if messages %}
+            {% for m in messages %}
+              <div class="msg {{ 'mine' if m.sender_id == current_user.id else '' }}">
+                {{ m.body }}
+                <span class="time">{{ m.sent_at.strftime('%H:%M, %d.%m') }}</span>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="empty-state">Brak wiadomości w tej konwersacji. Napisz pierwszą.</div>
+          {% endif %}
+        </div>
+
+        <form id="composer" class="composer">
+          <input type="text" id="msg-input" class="form-control" placeholder="Napisz wiadomość…" autocomplete="off" maxlength="2000" required />
+          <button type="submit" class="btn btn-primary">Wyślij</button>
+        </form>
+      {% else %}
+        <div class="empty-state" style="margin: auto;">
+          <i class="bi bi-arrow-left"></i>
+          <p>Wybierz konwersację z listy</p>
+        </div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if active %}
+  <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endif %}
+{% endblock %}
