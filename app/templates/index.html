@@ -4,18 +4,26 @@
 {% block content %}
 <section class="hero">
   <div class="container">
-    <h1>Hodowla<span class="accent">.</span></h1>
-    <p class="lead">
-      Profesjonalna platforma dla hodowców psów, koni i kotów.
-      Katalog rodowodów, weryfikacja, dopasowania chroniące przed inbredem.
-    </p>
-    <div class="hero-actions">
-      {% if current_user.is_authenticated %}
-        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Mój panel</a>
-      {% else %}
-        <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Załóż konto hodowcy</a>
-      {% endif %}
-      <a href="{{ url_for('farms.list_farms') }}" class="btn btn-outline-primary">Przeglądaj hodowle</a>
+    <div class="hero-inner">
+      <p class="kicker no-rule">Rejestr hodowli &amp; rodowodów · od 2026</p>
+      <h1>Profesjonalny rejestr <span class="accent">hodowli</span><br>i rodowodów.</h1>
+      <p class="lead">
+        Katalog hodowli psów, koni i kotów. Weryfikowane rodowody, mapa,
+        i dopasowania, które liczą współczynnik inbredu — zanim zarekomendują parę.
+      </p>
+      <div class="hero-actions">
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Mój panel</a>
+        {% else %}
+          <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Załóż konto hodowcy</a>
+        {% endif %}
+        <a href="{{ url_for('farms.list_farms') }}" class="btn btn-outline-primary">Przeglądaj hodowle</a>
+      </div>
+      <div class="hero-facts">
+        <span><i class="bi bi-diagram-3"></i> Rodowody do 4 pokoleń</span>
+        <span><i class="bi bi-patch-check"></i> Weryfikacja hodowli</span>
+        <span><i class="bi bi-shield-exclamation"></i> Ochrona przed inbredem</span>
+      </div>
     </div>
   </div>
 </section>
@@ -43,7 +51,10 @@
 <section class="section section-tight">
   <div class="container">
     <div class="section-title">
-      <h2>Wyróżnione hodowle</h2>
+      <div>
+        <p class="kicker">№ 01 — Katalog</p>
+        <h2>Wyróżnione hodowle</h2>
+      </div>
       <a href="{{ url_for('farms.list_farms') }}" class="section-link">Wszystkie hodowle &rarr;</a>
     </div>
     <div class="row g-4">
@@ -79,7 +90,10 @@
 <section class="section">
   <div class="container">
     <div class="section-title">
-      <h2>Co znajdziesz w platformie</h2>
+      <div>
+        <p class="kicker">№ 02 — Funkcje</p>
+        <h2>Co znajdziesz w platformie</h2>
+      </div>
     </div>
     <div class="row g-4">
       <div class="col-md-6 col-lg-3">
