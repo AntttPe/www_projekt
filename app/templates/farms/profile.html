@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_macros.html" import photo_plate %}
 {% block title %}{{ farm.name }} — Hodowla{% endblock %}
 
 {% block content %}
@@ -55,9 +56,7 @@
           {% for animal in farm.animals %}
             <div class="col-md-6">
               <article class="entity-card">
-                <div class="photo species-{{ animal.species }}" style="aspect-ratio: 3/2; font-size: 2rem;">
-                  <i class="bi bi-{{ {'dog': 'bug', 'horse': 'flower1', 'cat': 'moon-stars'}[animal.species] }}"></i>
-                </div>
+                {{ photo_plate(animal.species, animal.id, animal.name, style='aspect-ratio:3/2;') }}
                 <div class="body">
                   <h3 style="font-size: 1.15rem;">
                     <a href="{{ url_for('animals.animal_profile', animal_id=animal.id) }}">{{ animal.name }}</a>

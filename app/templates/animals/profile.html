@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_macros.html" import photo_plate %}
 {% block title %}{{ animal.name }} — Hodowla{% endblock %}
 
 {% block content %}
@@ -6,9 +7,7 @@
   <a href="{{ url_for('animals.list_animals') }}" class="text-muted text-decoration-none mb-3 d-inline-block">&larr; Wszystkie zwierzęta</a>
 
   <div class="profile-header">
-    <div class="photo species-{{ animal.species }}" style="width: 140px; height: 140px; border-radius: var(--radius-md); font-size: 4rem;">
-      <i class="bi bi-{{ {'dog': 'bug', 'horse': 'flower1', 'cat': 'moon-stars'}[animal.species] }}"></i>
-    </div>
+    {{ photo_plate(animal.species, animal.id, animal.name, style='width:140px;height:140px;border-radius:var(--radius-md);') }}
     <div>
       <h1 style="font-size: 2.6rem; margin-bottom: 0.3rem;">{{ animal.name }}</h1>
       {% if animal.title %}

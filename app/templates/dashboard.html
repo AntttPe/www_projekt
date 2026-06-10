@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_macros.html" import photo_plate %}
 {% block title %}Mój panel — Hodowla{% endblock %}
 
 {% block content %}
@@ -29,7 +30,7 @@
             {% if farm.is_verified %}<span class="tag-pill accent">Zweryfikowana</span>{% endif %}
             {% if farm.city %}<span class="tag-pill"><i class="bi bi-geo-alt"></i> {{ farm.city }}</span>{% endif %}
           </div>
-          <p class="text-soft">{{ farm.description or "Brak opisu — kliknij „Edytuj", żeby dodać." }}</p>
+          <p class="text-soft">{{ farm.description or "Brak opisu — kliknij „Edytuj”, żeby dodać." }}</p>
           <div class="d-flex gap-2">
             <a href="{{ url_for('farms.edit_my_farm') }}" class="btn btn-outline-primary">Edytuj profil</a>
             <a href="{{ url_for('animals.new_animal') }}" class="btn btn-primary">Dodaj zwierzę</a>
@@ -44,9 +45,7 @@
             {% for animal in farm.animals %}
               <div class="col-md-6">
                 <article class="entity-card">
-                  <div class="photo species-{{ animal.species }}" style="aspect-ratio: 3/2; font-size: 2rem;">
-                    <i class="bi bi-{{ {'dog': 'bug', 'horse': 'flower1', 'cat': 'moon-stars'}[animal.species] }}"></i>
-                  </div>
+                  {{ photo_plate(animal.species, animal.id, animal.name, style='aspect-ratio:3/2;') }}
                   <div class="body">
                     <h3 style="font-size: 1.15rem;"><a href="{{ url_for('animals.animal_profile', animal_id=animal.id) }}">{{ animal.name }}</a></h3>
                     <div class="meta">

@@ -1,0 +1,25 @@
+{# ============================================================
+   Wspólne makra szablonów.
+
+   photo_plate() — „tablica" zdjęcia gatunku używana na kartach i profilach.
+   Zaciąga zdjęcie ze stocka (loremflickr) DETERMINISTYCZNIE po `seed`
+   (np. id rekordu), więc dana hodowla/zwierzę ma zawsze to samo zdjęcie.
+   Gdy zdjęcie się nie wczyta (offline / 503), `onerror` usuwa <img> i zostaje
+   elegancki medalion z ikoną — żadnego „broken image".
+
+   To JEDYNE miejsce z logiką źródła zdjęcia: gdy zespół doda realne pole
+   `photo_url` w modelu albo lokalne pliki w /static/img, podmienia się tylko tu.
+   ============================================================ #}
+
+{% set _species_icon = {'dog': 'house-heart', 'horse': 'flower1', 'cat': 'moon-stars'} %}
+{% set _species_keyword = {'dog': 'dog', 'horse': 'horse', 'cat': 'cat'} %}
+
+{% macro photo_plate(species, seed, name='', style='', verified=false) -%}
+<div class="photo species-{{ species }}"{% if style %} style="{{ style }}"{% endif %}>
+  <img class="photo-img"
+       src="https://loremflickr.com/600/450/{{ _species_keyword.get(species, 'animal') }}?lock={{ seed }}"
+       alt="{{ name }}" loading="lazy" onerror="this.remove()">
+  <i class="bi bi-{{ _species_icon.get(species, 'image') }}"></i>
+  {%- if verified %}<span class="badge-verified"><i class="bi bi-patch-check-fill"></i> Zweryfikowana</span>{% endif %}
+</div>
+{%- endmacro %}
