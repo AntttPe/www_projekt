@@ -60,7 +60,7 @@
         {% for farm in pagination.items %}
           <div class="col-lg-4 col-md-6">
             <article class="entity-card">
-              {{ photo_plate(farm.species, farm.id, farm.name, verified=farm.is_verified) }}
+              {{ photo_plate(farm.species, farm.id, farm.name, verified=farm.is_verified, photo=farm.photo_filename) }}
               <div class="body">
                 <h3><a href="{{ url_for('farms.farm_profile', farm_id=farm.id) }}">{{ farm.name }}</a></h3>
                 <div class="meta">

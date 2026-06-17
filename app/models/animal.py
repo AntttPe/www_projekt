@@ -29,6 +29,9 @@ class Animal(db.Model):
     description = db.Column(db.Text, nullable=False, default="")
     available_for_breeding = db.Column(db.Boolean, nullable=False, default=False)
     title = db.Column(db.String(120), nullable=False, default="")  # np. "Mistrz Polski"
+    # Pliki: zdjęcie zwierzęcia + zeskanowany rodowód (PDF). Walidacja w services/uploads.
+    photo_filename = db.Column(db.String(120), nullable=False, default="")
+    pedigree_document = db.Column(db.String(120), nullable=False, default="")
 
     sire_id = db.Column(db.Integer, db.ForeignKey("animals.id"), nullable=True, index=True)
     dam_id = db.Column(db.Integer, db.ForeignKey("animals.id"), nullable=True, index=True)

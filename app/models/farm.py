@@ -27,6 +27,8 @@ class Farm(db.Model):
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
     is_verified = db.Column(db.Boolean, nullable=False, default=False)
+    # Nazwa pliku zdjęcia (generowana przez services/uploads, serwowana przez main.media).
+    photo_filename = db.Column(db.String(120), nullable=False, default="")
     accent_color = db.Column(db.String(20), nullable=False, default="green")
     contact_email = db.Column(db.String(255), nullable=False, default="")
     contact_phone = db.Column(db.String(40), nullable=False, default="")

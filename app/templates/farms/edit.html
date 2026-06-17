@@ -7,7 +7,7 @@
   <h1 style="font-size: 2.2rem;">{{ "Edytuj profil" if farm else "Utwórz profil hodowli" }}</h1>
   <p class="text-soft mb-4">Im więcej szczegółów dodasz, tym łatwiej znajdą Cię inni hodowcy.</p>
 
-  <form method="post" novalidate class="info-card">
+  <form method="post" enctype="multipart/form-data" novalidate class="info-card">
     {{ form.hidden_tag() }}
 
     <div class="mb-3">
@@ -48,6 +48,20 @@
       {{ form.description(class="form-control", rows=5, placeholder="O hodowli, linii rodowodowej, podejściu do selekcji...") }}
     </div>
 
+    <div class="mb-3 mt-3">
+      {{ form.photo.label(class="form-label") }}
+      {% if farm and farm.photo_filename %}
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <img src="{{ url_for('main.media', kind='photos', name=farm.photo_filename) }}"
+               alt="Aktualne zdjęcie" style="width:96px;height:64px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--color-border);">
+          <span class="text-muted small">Aktualne zdjęcie — prześlij nowe, żeby podmienić.</span>
+        </div>
+      {% endif %}
+      {{ form.photo(class="form-control", **{"data-crop": "3:2"}) }}
+      <div class="text-muted small mt-1">JPG, PNG lub WebP, do 5 MB. Po wybraniu skadrujesz zdjęcie do proporcji 3:2.</div>
+      {% for e in form.photo.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+    </div>
+
     <h4 class="mt-4" style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.85rem; color: var(--color-muted);">Kontakt</h4>
     <div class="row g-3">
       <div class="col-md-6">
@@ -76,4 +90,8 @@
     </div>
   </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+  {% include "_crop_assets.html" %}
 {% endblock %}

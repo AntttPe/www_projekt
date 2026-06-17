@@ -12,10 +12,14 @@ from app.extensions import db
 
 @pytest.fixture
 def app():
-    application = create_app()
-    application.config["TESTING"] = True
-    application.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-    application.config["WTF_CSRF_ENABLED"] = False
+    # Override MUSI wejść przed init_app (wiązanie silnika), dlatego przez create_app(...).
+    application = create_app(
+        {
+            "TESTING": True,
+            "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+            "WTF_CSRF_ENABLED": False,
+        }
+    )
     with application.app_context():
         db.create_all()
     return application

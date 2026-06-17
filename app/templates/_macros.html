@@ -2,23 +2,38 @@
    Wspólne makra szablonów.
 
    photo_plate() — „tablica" zdjęcia gatunku używana na kartach i profilach.
-   Zaciąga zdjęcie ze stocka (loremflickr) DETERMINISTYCZNIE po `seed`
-   (np. id rekordu), więc dana hodowla/zwierzę ma zawsze to samo zdjęcie.
+   Kolejność źródeł (pierwsze, które jest dostępne, wygrywa):
+     1. `photo` — realne zdjęcie wgrane przez użytkownika (services/uploads,
+        serwowane przez main.media). Jest już skadrowane do 3:2 przy uploadzie.
+     2. lokalny katalog static/img/stock/<gatunek>/ — nasze „dobre" zdjęcia;
+        wybór DETERMINISTYCZNY po `seed` (id rekordu) → dany rekord ma zawsze
+        to samo. Wystarczy wrzucić pliki do folderu (patrz README tamże).
+     3. loremflickr — tymczasowy fallback ze stocka, też deterministyczny.
    Gdy zdjęcie się nie wczyta (offline / 503), `onerror` usuwa <img> i zostaje
    elegancki medalion z ikoną — żadnego „broken image".
 
-   To JEDYNE miejsce z logiką źródła zdjęcia: gdy zespół doda realne pole
-   `photo_url` w modelu albo lokalne pliki w /static/img, podmienia się tylko tu.
+   `stock_photos_for` to globalna funkcja Jinja (rejestrowana w create_app),
+   więc działa w makrze importowanym bez `with context`.
    ============================================================ #}
 
 {% set _species_icon = {'dog': 'house-heart', 'horse': 'flower1', 'cat': 'moon-stars'} %}
 {% set _species_keyword = {'dog': 'dog', 'horse': 'horse', 'cat': 'cat'} %}
 
-{% macro photo_plate(species, seed, name='', style='', verified=false) -%}
+{% macro photo_plate(species, seed, name='', style='', verified=false, photo='') -%}
+{% set _stock = stock_photos_for(species) %}
 <div class="photo species-{{ species }}"{% if style %} style="{{ style }}"{% endif %}>
-  <img class="photo-img"
-       src="https://loremflickr.com/600/450/{{ _species_keyword.get(species, 'animal') }}?lock={{ seed }}"
+  {% if photo %}
+  <img class="photo-img" src="{{ url_for('main.media', kind='photos', name=photo) }}"
        alt="{{ name }}" loading="lazy" onerror="this.remove()">
+  {% elif _stock %}
+  <img class="photo-img"
+       src="{{ url_for('static', filename='img/stock/' ~ species ~ '/' ~ _stock[seed % (_stock|length)]) }}"
+       alt="{{ name }}" loading="lazy" onerror="this.remove()">
+  {% else %}
+  <img class="photo-img"
+       src="https://loremflickr.com/600/400/{{ _species_keyword.get(species, 'animal') }}?lock={{ seed }}"
+       alt="{{ name }}" loading="lazy" onerror="this.remove()">
+  {% endif %}
   <i class="bi bi-{{ _species_icon.get(species, 'image') }}"></i>
   {%- if verified %}<span class="badge-verified"><i class="bi bi-patch-check-fill"></i> Zweryfikowana</span>{% endif %}
 </div>

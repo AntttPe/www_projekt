@@ -1,0 +1,6 @@
+{# Zasoby kadrowania zdjęć (Cropper.js z CDN + nasz crop.js).
+   Dołączane TYLKO na stronach z formularzami uploadu, żeby nie obciążać reszty.
+   Działa progresywnie: bez JS leci surowy plik, walidacja jest po serwerze. #}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+<script src="{{ url_for('static', filename='js/crop.js') }}"></script>

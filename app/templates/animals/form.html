@@ -6,7 +6,7 @@
   <p class="text-muted mb-1" style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.78rem;">{{ farm.name }}</p>
   <h1 style="font-size: 2.2rem;">{{ "Edytuj: " + animal.name if animal else "Dodaj zwierzę" }}</h1>
 
-  <form method="post" novalidate class="info-card">
+  <form method="post" enctype="multipart/form-data" novalidate class="info-card">
     {{ form.hidden_tag() }}
 
     <div class="row g-3">
@@ -76,10 +76,43 @@
       </div>
     </div>
 
+    <h4 class="mt-4" style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.85rem; color: var(--color-muted);">Pliki</h4>
+    <div class="row g-3">
+      <div class="col-md-6">
+        {{ form.photo.label(class="form-label") }}
+        {% if animal and animal.photo_filename %}
+          <div class="mb-2">
+            <img src="{{ url_for('main.media', kind='photos', name=animal.photo_filename) }}"
+                 alt="Aktualne zdjęcie" style="width:96px;height:64px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--color-border);">
+          </div>
+        {% endif %}
+        {{ form.photo(class="form-control", **{"data-crop": "3:2"}) }}
+        <div class="text-muted small mt-1">JPG, PNG lub WebP, do 5 MB. Po wybraniu skadrujesz zdjęcie do proporcji 3:2.</div>
+        {% for e in form.photo.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-6">
+        {{ form.pedigree_document.label(class="form-label") }}
+        {% if animal and animal.pedigree_document %}
+          <div class="mb-2">
+            <a href="{{ url_for('main.media', kind='documents', name=animal.pedigree_document) }}" target="_blank" rel="noopener" class="text-decoration-none">
+              <i class="bi bi-file-earmark-pdf"></i> Aktualny dokument
+            </a>
+          </div>
+        {% endif %}
+        {{ form.pedigree_document(class="form-control") }}
+        <div class="text-muted small mt-1">Zeskanowany rodowód, PDF do 10 MB.</div>
+        {% for e in form.pedigree_document.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+      </div>
+    </div>
+
     <div class="d-flex gap-2 justify-content-end mt-4">
       <a href="{{ url_for('animals.animal_profile', animal_id=animal.id) if animal else url_for('main.dashboard') }}" class="btn btn-light">Anuluj</a>
       {{ form.submit(class="btn btn-primary") }}
     </div>
   </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+  {% include "_crop_assets.html" %}
 {% endblock %}

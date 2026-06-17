@@ -5,6 +5,7 @@ from __future__ import annotations
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileAllowed, FileField
 from wtforms import (
     BooleanField,
     DateField,
@@ -21,6 +22,13 @@ from ..models.farm import SPECIES_CHOICES
 from ..models.favorite import Favorite
 from ..services.matching import find_matches
 from ..services.pedigree import inbreeding_coefficient, risk_label
+from ..services.uploads import (
+    KIND_DOCUMENTS,
+    KIND_PHOTOS,
+    UploadError,
+    delete_upload,
+    save_upload,
+)
 
 bp = Blueprint("animals", __name__)
 
@@ -38,6 +46,15 @@ class AnimalForm(FlaskForm):
     available_for_breeding = BooleanField("Dostępny/a do rozrodu")
     sire_id = SelectField("Ojciec (z bazy)", coerce=int, choices=[], validators=[Optional()])
     dam_id = SelectField("Matka (z bazy)", coerce=int, choices=[], validators=[Optional()])
+    # Pliki — pierwsza linia walidacji (rozszerzenie); sniffing MIME w services/uploads.
+    photo = FileField(
+        "Zdjęcie zwierzęcia",
+        validators=[FileAllowed(["jpg", "jpeg", "png", "webp"], "Dozwolone: JPG, PNG, WebP.")],
+    )
+    pedigree_document = FileField(
+        "Rodowód (PDF)",
+        validators=[FileAllowed(["pdf"], "Dokument rodowodu musi być w formacie PDF.")],
+    )
     submit = SubmitField("Zapisz")
 
 
@@ -153,6 +170,11 @@ def new_animal():
     if form.validate_on_submit():
         animal = Animal(farm_id=farm.id)
         _apply_form(animal, form)
+        try:
+            _apply_uploads(animal, form)
+        except UploadError as exc:
+            flash(str(exc), "danger")
+            return render_template("animals/form.html", form=form, animal=None, farm=farm)
         db.session.add(animal)
         db.session.commit()
         flash(f"Dodano: {animal.name}.", "success")
@@ -182,6 +204,11 @@ def edit_animal(animal_id: int):
 
     if form.validate_on_submit():
         _apply_form(animal, form)
+        try:
+            _apply_uploads(animal, form)
+        except UploadError as exc:
+            flash(str(exc), "danger")
+            return render_template("animals/form.html", form=form, animal=animal, farm=animal.farm)
         db.session.commit()
         flash("Zmiany zapisane.", "success")
         return redirect(url_for("animals.animal_profile", animal_id=animal.id))
@@ -218,6 +245,18 @@ def toggle_favorite(animal_id: int):
         db.session.add(Favorite(user_id=current_user.id, animal_id=animal_id))
         db.session.commit()
     return redirect(request.referrer or url_for("animals.animal_profile", animal_id=animal_id))
+
+
+def _apply_uploads(animal: Animal, form: AnimalForm) -> None:
+    """Waliduje i zapisuje przesłane pliki na obiekt. Rzuca UploadError przy złym pliku."""
+    new_photo = save_upload(form.photo.data, kind=KIND_PHOTOS)
+    if new_photo:
+        delete_upload(animal.photo_filename, kind=KIND_PHOTOS)
+        animal.photo_filename = new_photo
+    new_doc = save_upload(form.pedigree_document.data, kind=KIND_DOCUMENTS)
+    if new_doc:
+        delete_upload(animal.pedigree_document, kind=KIND_DOCUMENTS)
+        animal.pedigree_document = new_doc
 
 
 def _apply_form(animal: Animal, form: AnimalForm) -> None:

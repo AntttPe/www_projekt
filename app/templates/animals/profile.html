@@ -7,7 +7,7 @@
   <a href="{{ url_for('animals.list_animals') }}" class="text-muted text-decoration-none mb-3 d-inline-block">&larr; Wszystkie zwierzęta</a>
 
   <div class="profile-header">
-    {{ photo_plate(animal.species, animal.id, animal.name, style='width:140px;height:140px;border-radius:var(--radius-md);') }}
+    {{ photo_plate(animal.species, animal.id, animal.name, style='width:140px;height:140px;border-radius:var(--radius-md);', photo=animal.photo_filename) }}
     <div>
       <h1 style="font-size: 2.6rem; margin-bottom: 0.3rem;">{{ animal.name }}</h1>
       {% if animal.title %}
@@ -56,6 +56,12 @@
 
       <div class="info-card">
         <h3>Rodowód</h3>
+        {% if animal.pedigree_document %}
+          <a href="{{ url_for('main.media', kind='documents', name=animal.pedigree_document) }}"
+             target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm mb-3">
+            <i class="bi bi-file-earmark-pdf"></i> Pobierz dokument rodowodu (PDF)
+          </a>
+        {% endif %}
         {% if animal.sire or animal.dam %}
           {% if own_inbreeding is not none and own_inbreeding > 0 %}
             {% set label, color = risk_label(own_inbreeding) %}

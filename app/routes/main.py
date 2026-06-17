@@ -2,9 +2,18 @@
 
 from __future__ import annotations
 
+import os
 from datetime import datetime
 
-from flask import Blueprint, abort, redirect, render_template, url_for
+from flask import (
+    Blueprint,
+    abort,
+    current_app,
+    redirect,
+    render_template,
+    send_from_directory,
+    url_for,
+)
 from flask_login import current_user, login_required
 from sqlalchemy import func
 
@@ -12,8 +21,23 @@ from ..extensions import db
 from ..models.animal import Animal
 from ..models.farm import Farm
 from ..models.notification import Notification
+from ..services.uploads import ALLOWED_KINDS
 
 bp = Blueprint("main", __name__)
+
+
+@bp.get("/media/<kind>/<name>")
+def media(kind: str, name: str):
+    """Serwuje przesłane pliki użytkowników (zdjęcia, PDF rodowodów).
+
+    Lab 9 (anty-LFI): `kind` musi być z whitelisty, a `send_from_directory`
+    bezpiecznie odrzuca próby wyjścia poza katalog (`../`). Nigdy nie wołamy
+    `open()` po ścieżce sklejonej z danych klienta.
+    """
+    if kind not in ALLOWED_KINDS:
+        abort(404)
+    directory = os.path.join(current_app.config["UPLOAD_FOLDER"], kind)
+    return send_from_directory(directory, name)
 
 
 @bp.get("/")

@@ -5,6 +5,7 @@ from __future__ import annotations
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileAllowed, FileField
 from wtforms import (
     FloatField,
     SelectField,
@@ -17,6 +18,7 @@ from wtforms.validators import URL, DataRequired, Email, Length, NumberRange, Op
 from ..extensions import db
 from ..models.farm import SPECIES_CHOICES, Farm
 from ..models.favorite import Favorite
+from ..services.uploads import KIND_PHOTOS, UploadError, delete_upload, save_upload
 
 bp = Blueprint("farms", __name__)
 
@@ -69,6 +71,11 @@ class FarmForm(FlaskForm):
     )
     contact_phone = StringField("Telefon", validators=[Length(max=40)])
     website = StringField("Strona WWW", validators=[Optional(), URL(), Length(max=255)])
+    # Pierwsza linia obrony (rozszerzenie); druga to sniffing MIME w services/uploads.
+    photo = FileField(
+        "Zdjęcie hodowli",
+        validators=[FileAllowed(["jpg", "jpeg", "png", "webp"], "Dozwolone: JPG, PNG, WebP.")],
+    )
     submit = SubmitField("Zapisz")
 
 
@@ -137,6 +144,13 @@ def edit_my_farm():
     form = FarmForm(obj=farm)
 
     if form.validate_on_submit():
+        # Walidujemy/zapisujemy plik ZANIM dotkniemy bazy — przy błędzie nic nie commitujemy.
+        try:
+            new_photo = save_upload(form.photo.data, kind=KIND_PHOTOS)
+        except UploadError as exc:
+            flash(str(exc), "danger")
+            return render_template("farms/edit.html", form=form, farm=farm)
+
         is_new = farm is None
         if is_new:
             farm = Farm(owner_id=current_user.id)
@@ -152,6 +166,9 @@ def edit_my_farm():
         farm.contact_email = form.contact_email.data or ""
         farm.contact_phone = form.contact_phone.data or ""
         farm.website = form.website.data or ""
+        if new_photo:
+            delete_upload(farm.photo_filename, kind=KIND_PHOTOS)  # sprzątamy stare zdjęcie
+            farm.photo_filename = new_photo
         db.session.commit()
         flash("Profil hodowli zapisany.", "success")
         return redirect(url_for("farms.farm_profile", farm_id=farm.id))

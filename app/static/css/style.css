@@ -516,7 +516,10 @@ main {
   background-size: 14px 14px;
 }
 .entity-card .photo {
-  aspect-ratio: 16 / 9;
+  /* 3:2 — jedna proporcja w całej aplikacji (karty, listy, profile). Zdjęcia
+     wgrywane są kadrowane do 3:2 przy uploadzie i takie też trzymamy w
+     img/stock, więc object-fit:cover niżej nie ucina nic widocznie. */
+  aspect-ratio: 3 / 2;
   border-bottom: 1px solid var(--color-border);
 }
 .photo > i {
@@ -560,6 +563,59 @@ main {
   gap: 4px;
 }
 .photo .badge-verified i { color: var(--color-accent); }
+
+/* --- Kadrowanie zdjęć przy uploadzie (crop.js + Cropper.js) --- */
+.crop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1080;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(28, 25, 23, 0.55);
+}
+.crop-overlay[hidden] { display: none; }
+.crop-dialog {
+  width: min(640px, 100%);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg, 0 20px 50px rgba(0, 0, 0, 0.25));
+  overflow: hidden;
+}
+.crop-head {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+.crop-head .crop-hint {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.82rem;
+  color: var(--color-muted);
+}
+.crop-stage {
+  background: var(--color-bg-deep);
+  /* Cropper potrzebuje ograniczonej wysokości obrazka, inaczej rozjeżdża layout. */
+  max-height: 60vh;
+}
+.crop-stage img { display: block; max-width: 100%; }
+.crop-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 0.9rem 1.25rem;
+  border-top: 1px solid var(--color-border);
+}
+.crop-preview {
+  display: block;
+  margin-top: 0.6rem;
+  width: 144px;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
 .entity-card .body {
   padding: 1.25rem 1.4rem 1.4rem;
   flex: 1;

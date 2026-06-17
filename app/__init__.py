@@ -18,11 +18,16 @@ _REPO_ROOT = os.path.dirname(_PACKAGE_DIR)
 _INSTANCE_DIR = os.path.join(_REPO_ROOT, "instance")
 
 
-def create_app() -> Flask:
+def create_app(config_overrides: dict | None = None) -> Flask:
     os.makedirs(_INSTANCE_DIR, exist_ok=True)
 
     app = Flask(__name__, instance_path=_INSTANCE_DIR)
     _configure(app)
+    # Override configu MUSI wejść przed init_app — Flask-SQLAlchemy wiąże silnik
+    # do bazy właśnie tu, więc testy podmieniają URI (np. na :memory:) zawczasu.
+    if config_overrides:
+        app.config.update(config_overrides)
+    _allow_test_email_domain()
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -33,6 +38,13 @@ def create_app() -> Flask:
     csrf.init_app(app)
     socketio.init_app(app)
     limiter.init_app(app)
+
+    # Globalna funkcja Jinja: lista lokalnych zdjęć stockowych per gatunek.
+    # Jako global (nie context processor) jest dostępna w makrze photo_plate
+    # importowanym bez `with context`.
+    from .services.uploads import stock_photos_for
+
+    app.jinja_env.globals["stock_photos_for"] = stock_photos_for
 
     # Modele muszą się zaimportować zanim Alembic spróbuje wykryć schemat.
     from . import models  # noqa: F401
@@ -121,6 +133,20 @@ def create_app() -> Flask:
     return app
 
 
+def _allow_test_email_domain() -> None:
+    """Dopuszcza domenę `.test` w walidacji email (WTForms → email_validator).
+
+    email_validator domyślnie odrzuca domeny „special-use" — w tym `.test` —
+    przez co kont demo z seeda (np. anna@hodowla.test) NIE dało się zalogować.
+    `.test` jest wg RFC 6761 zarezerwowane właśnie do testów, więc świadomie ją
+    dopuszczamy. Pozostałe special-use (localhost, invalid, example) dalej blokujemy.
+    """
+    import email_validator
+
+    if "test" in email_validator.SPECIAL_USE_DOMAIN_NAMES:
+        email_validator.SPECIAL_USE_DOMAIN_NAMES.remove("test")
+
+
 def _configure(app: Flask) -> None:
     default_db_uri = f"sqlite:///{os.path.join(_INSTANCE_DIR, 'tindog.db')}"
     db_uri = _normalize_sqlite_uri(os.environ.get("DATABASE_URL", default_db_uri))
@@ -135,6 +161,9 @@ def _configure(app: Flask) -> None:
         # Limit rozmiaru żądania (16 MB) — Lab 9, ochrona przed DoS via duże uploady.
         MAX_CONTENT_LENGTH=16 * 1024 * 1024,
         WTF_CSRF_TIME_LIMIT=3600,
+        # Pliki użytkowników (zdjęcia, PDF rodowodów) — w instance/, poza repo
+        # (git pull ich nie rusza), serwowane przez kontrolowaną trasę `main.media`.
+        UPLOAD_FOLDER=os.environ.get("UPLOAD_FOLDER", os.path.join(_INSTANCE_DIR, "uploads")),
     )
 
 

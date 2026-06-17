@@ -67,7 +67,7 @@
           {% for animal in pagination.items %}
             <div class="col-lg-4 col-md-6">
               <article class="entity-card">
-                {{ photo_plate(animal.species, animal.id, animal.name, style='aspect-ratio:4/3;') }}
+                {{ photo_plate(animal.species, animal.id, animal.name, style='aspect-ratio:3/2;', photo=animal.photo_filename) }}
                 <div class="body">
                   <h3 style="font-size: 1.2rem;">
                     <a href="{{ url_for('animals.animal_profile', animal_id=animal.id) }}">{{ animal.name }}</a>
