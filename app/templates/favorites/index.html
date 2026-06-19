@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% from "_macros.html" import photo_plate %}
+{% block title %}Moje Ulubione — Hodowla{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="mb-5">
+    <p class="text-muted mb-1" style="text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.78rem;">Twój profil</p>
+    <h1 style="font-size: 2.5rem;">Moje Ulubione</h1>
+  </div>
+
+  <div class="mb-5">
+    <h2 class="mb-4">Zwierzęta <span class="text-muted fs-6">({{ animals|length }})</span></h2>
+    {% if animals %}
+      <div class="row g-4">
+        {% for animal in animals %}
+          <div class="col-lg-3 col-md-4 col-sm-6">
+            <article class="entity-card">
+              {{ photo_plate(animal.species, animal.id, animal.name, style='aspect-ratio:3/2;', photo=animal.photo_filename) }}
+              <div class="body">
+                <h3 style="font-size: 1.2rem;">
+                  <a href="{{ url_for('animals.animal_profile', animal_id=animal.id) }}">{{ animal.name }}</a>
+                </h3>
+                <div class="meta">
+                  <span>{{ animal.breed }}</span>
+                </div>
+                <div class="footer d-flex justify-content-between align-items-center mt-3">
+                  <div>
+                    {% if animal.farm %}
+                      <a href="{{ url_for('farms.farm_profile', farm_id=animal.farm_id) }}" class="text-decoration-none text-muted">{{ animal.farm.name }}</a>
+                    {% endif %}
+                  </div>
+                  <form method="post" action="{{ url_for('animals.toggle_favorite', animal_id=animal.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <button type="submit" class="btn btn-link p-0 text-decoration-none" title="Usuń z ulubionych">
+                      <i class="bi bi-star-fill" style="color: var(--color-accent);"></i>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </article>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted">Nie masz jeszcze polubionych zwierząt.</p>
+    {% endif %}
+  </div>
+
+  <hr class="my-5">
+
+  <div>
+    <h2 class="mb-4">Hodowle <span class="text-muted fs-6">({{ farms|length }})</span></h2>
+    {% if farms %}
+      <div class="row g-4">
+        {% for farm in farms %}
+          <div class="col-lg-3 col-md-4 col-sm-6">
+            <article class="entity-card">
+              {{ photo_plate(farm.species, farm.id, farm.name, verified=farm.is_verified, photo=farm.photo_filename) }}
+              <div class="body">
+                <h3><a href="{{ url_for('farms.farm_profile', farm_id=farm.id) }}">{{ farm.name }}</a></h3>
+                <div class="meta">
+                  {% if farm.city %}<span><i class="bi bi-geo-alt"></i> {{ farm.city }}</span>{% endif %}
+                </div>
+                <div class="footer d-flex justify-content-between align-items-center mt-3">
+                   <span>{{ farm.animals|length }} zwierząt</span>
+                   <form method="post" action="{{ url_for('farms.toggle_favorite', farm_id=farm.id) }}" class="d-inline">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                      <button type="submit" class="btn btn-link p-0 text-decoration-none" title="Usuń z ulubionych">
+                        <i class="bi bi-star-fill" style="color: var(--color-accent);"></i>
+                      </button>
+                    </form>
+                </div>
+              </div>
+            </article>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted">Nie obserwujesz jeszcze żadnych hodowli.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

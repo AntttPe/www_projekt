@@ -62,6 +62,7 @@ def create_app(config_overrides: dict | None = None) -> Flask:
     from .routes.auth import bp as auth_bp
     from .routes.chat import bp as chat_bp
     from .routes.farms import bp as farms_bp
+    from .routes.favorites import bp as favorites_bp
     from .routes.main import bp as main_bp
     from .routes.map import bp as map_bp
 
@@ -69,6 +70,7 @@ def create_app(config_overrides: dict | None = None) -> Flask:
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(farms_bp, url_prefix="/farms")
     app.register_blueprint(animals_bp, url_prefix="/animals")
+    app.register_blueprint(favorites_bp, url_prefix="/favorites")
     app.register_blueprint(chat_bp, url_prefix="/chat")
     app.register_blueprint(map_bp, url_prefix="/map")
     app.register_blueprint(api_bp, url_prefix="/api")

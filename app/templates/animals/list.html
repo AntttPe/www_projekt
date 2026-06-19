@@ -80,12 +80,27 @@
                   {% if animal.title %}
                     <p style="font-family: var(--font-serif); font-style: italic; color: var(--color-accent-hover); font-size: 0.9rem; margin: 0.3rem 0;">{{ animal.title }}</p>
                   {% endif %}
-                  <div class="footer">
-                    {% if animal.farm %}
-                      <a href="{{ url_for('farms.farm_profile', farm_id=animal.farm_id) }}" class="text-decoration-none text-muted">{{ animal.farm.name }}</a>
-                    {% endif %}
-                    {% if animal.available_for_breeding %}
-                      <span class="tag-pill success" style="font-size: 0.72rem;">Dostępny</span>
+                  <div class="footer d-flex justify-content-between align-items-center">
+                    <div>
+                      {% if animal.farm %}
+                        <a href="{{ url_for('farms.farm_profile', farm_id=animal.farm_id) }}" class="text-decoration-none text-muted">{{ animal.farm.name }}</a>
+                      {% endif %}
+                      {% if animal.available_for_breeding %}
+                        <span class="tag-pill success" style="font-size: 0.72rem;">Dostępny</span>
+                      {% endif %}
+                    </div>
+
+                    {% if current_user.is_authenticated %}
+                      <form method="post" action="{{ url_for('animals.toggle_favorite', animal_id=animal.id) }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <button type="submit" class="btn btn-link p-0 text-decoration-none" title="Dodaj/usuń z ulubionych">
+                          {% if animal.id in favorited_animal_ids %}
+                            <i class="bi bi-star-fill" style="color: var(--color-accent);"></i>
+                          {% else %}
+                            <i class="bi bi-star" style="color: var(--color-muted);"></i>
+                          {% endif %}
+                        </button>
+                      </form>
                     {% endif %}
                   </div>
                 </div>
