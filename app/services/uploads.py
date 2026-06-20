@@ -87,8 +87,9 @@ def save_upload(file: FileStorage | None, *, kind: str) -> str | None:
     Zwraca wygenerowaną nazwę (do zapisania w bazie) albo `None`, gdy nic nie
     przesłano. Rzuca `UploadError` przy pliku niespełniającym reguł.
     """
-    if file is None or not file.filename:
-        return None  # pole zostawione puste — to nie błąd
+    # bugfix edit
+    if not isinstance(file, FileStorage) or not file.filename:
+        return None  # pole zostawione puste lub wpadł string — to nie błąd
 
     if kind == KIND_PHOTOS:
         allowed, max_bytes, human = IMAGE_TYPES, MAX_IMAGE_BYTES, "JPG, PNG lub WebP"

@@ -200,6 +200,11 @@ def edit_animal(animal_id: int):
         form.sex.data = animal.sex
         form.sire_id.data = animal.sire_id or 0
         form.dam_id.data = animal.dam_id or 0
+
+        # bugfix edit
+        form.photo.data = None
+        form.pedigree_document.data = None
+
     _populate_parent_choices(form, species=form.species.data, exclude_id=animal.id)
 
     if form.validate_on_submit():
