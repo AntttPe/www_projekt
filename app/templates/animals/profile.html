@@ -117,10 +117,55 @@
                 <div class="ped-cell empty">—</div>
               {% endif %}
             </div>
-            {# Kolumna 3: Pradziadkowie — uproszczone "..." #}
+            {# Kolumna 3: Pradziadkowie (8 kafelków) #}
             <div>
-              <div class="ped-cell empty" style="text-align: center;">3. pokolenie — w API</div>
-              <div class="ped-cell empty" style="text-align: center;">/api/animals/{{ animal.id }}/pedigree</div>
+              {# Pradziadkowie od strony dziadka (po ojcu) #}
+              {% if animal.sire and animal.sire.sire and animal.sire.sire.sire %}
+                <div class="ped-cell"><span class="name">{{ animal.sire.sire.sire.name }}</span><span class="sub">Pradziadek</span></div>
+              {% else %}
+                <div class="ped-cell empty">—</div>
+              {% endif %}
+              {% if animal.sire and animal.sire.sire and animal.sire.sire.dam %}
+                <div class="ped-cell"><span class="name">{{ animal.sire.sire.dam.name }}</span><span class="sub">Prababcia</span></div>
+              {% else %}
+                <div class="ped-cell empty">—</div>
+              {% endif %}
+
+              {# Pradziadkowie od strony babci (po ojcu) #}
+              {% if animal.sire and animal.sire.dam and animal.sire.dam.sire %}
+                <div class="ped-cell"><span class="name">{{ animal.sire.dam.sire.name }}</span><span class="sub">Pradziadek</span></div>
+              {% else %}
+                <div class="ped-cell empty">—</div>
+              {% endif %}
+              {% if animal.sire and animal.sire.dam and animal.sire.dam.dam %}
+                <div class="ped-cell"><span class="name">{{ animal.sire.dam.dam.name }}</span><span class="sub">Prababcia</span></div>
+              {% else %}
+                <div class="ped-cell empty">—</div>
+              {% endif %}
+
+              {# Pradziadkowie od strony dziadka (po matce) #}
+              {% if animal.dam and animal.dam.sire and animal.dam.sire.sire %}
+                <div class="ped-cell"><span class="name">{{ animal.dam.sire.sire.name }}</span><span class="sub">Pradziadek</span></div>
+              {% else %}
+                <div class="ped-cell empty">—</div>
+              {% endif %}
+              {% if animal.dam and animal.dam.sire and animal.dam.sire.dam %}
+                <div class="ped-cell"><span class="name">{{ animal.dam.sire.dam.name }}</span><span class="sub">Prababcia</span></div>
+              {% else %}
+                <div class="ped-cell empty">—</div>
+              {% endif %}
+
+              {# Pradziadkowie od strony babci (po matce) #}
+              {% if animal.dam and animal.dam.dam and animal.dam.dam.sire %}
+                <div class="ped-cell"><span class="name">{{ animal.dam.dam.sire.name }}</span><span class="sub">Pradziadek</span></div>
+              {% else %}
+                <div class="ped-cell empty">—</div>
+              {% endif %}
+              {% if animal.dam and animal.dam.dam and animal.dam.dam.dam %}
+                <div class="ped-cell"><span class="name">{{ animal.dam.dam.dam.name }}</span><span class="sub">Prababcia</span></div>
+              {% else %}
+                <div class="ped-cell empty">—</div>
+              {% endif %}
             </div>
           </div>
         {% else %}
