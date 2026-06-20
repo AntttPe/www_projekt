@@ -94,11 +94,22 @@ def list_animals():
     pagination = query.order_by(Animal.created_at.desc()).paginate(
         page=page, per_page=12, error_out=False
     )
+
+    # --- NOWY KOD DO OBSŁUGI ULUBIONYCH ---
+    favorited_animal_ids = set()
+    if current_user.is_authenticated:
+        favs = Favorite.query.filter(
+            Favorite.user_id == current_user.id, Favorite.animal_id.isnot(None)
+        ).all()
+        favorited_animal_ids = {f.animal_id for f in favs}
+    # ----------------------------------------
+
     return render_template(
         "animals/list.html",
         pagination=pagination,
         species_choices=SPECIES_CHOICES,
         sex_choices=SEX_CHOICES,
+        favorited_animal_ids=favorited_animal_ids,  # Przekazujemy do szablonu
         filters={
             "species": species,
             "sex": sex,
