@@ -163,3 +163,15 @@ prowadzący zobaczył, że nie tylko nas to ominęło, ale wiemy „dlaczego" i 
   Trzymamy się Jinja2 + Bootstrap + Alpine.js + Fetch.
 - Nie dodawać funkcji spoza ustalonego zakresu bez uzgodnienia (ocena = realizacja ustalonych punktów).
 - Nie obchodzić walidacji ani sprawdzania właściciela „na szybko" — to wprost obniża ocenę.
+
+## Perspektywa użytkownika
+
+- Niezalogowany widzi katalog hodowli, zwierząt i mapę — ale nie może pisać na czacie ani dodawać do ulubionych.
+- Po rejestracji użytkownik od razu może założyć hodowlę — nie ma żadnego kroku weryfikacji e-mail.
+- Każdy użytkownik ma jeden panel (`/dashboard`) z listą swoich zwierząt, hodowli i powiadomień.
+- Oznaczenie hodowli jako „zweryfikowana" robi tylko admin — zwykły user nie może tego zmienić.
+- Ulubione działają na zwierzętach i na hodowlach — przycisk serca, bez potwierdzenia.
+- Czat można zacząć z profilu hodowli — użytkownik nie może napisać do siebie samego.
+- Powiadomienia pojawiają się w czasie rzeczywistym (ikona dzwonka w navbarze) i zostają w historii pod `/notifications`.
+- Właściciel widzi na profilu swojego zwierzęcia przyciski edycji i usuwania — inni użytkownicy ich nie widzą.
+- Strona dopasowań (`/animals/<id>/matches`) jest widoczna dla wszystkich, ale sugeruje tylko zwierzęta z `available_for_breeding = true`.
