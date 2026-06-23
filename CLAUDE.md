@@ -6,9 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 > **docelowa** architektura i konwencje uzgodnione przez zespół. Część komend zacznie działać dopiero po
 > utworzeniu scaffoldingu Flaska.
 
-## Czym jest projekt
+## Czym jest projekt ?
 
-Aplikacja webowa dla **hodowców zwierząt** (psy, konie, koty itd.) do prowadzenia profilu hodowli,
+Aplikacja webowa dla **hodowców zwierząt** (psy, konie, koty itd...) do prowadzenia profilu hodowli,
 katalogowania zwierząt z rodowodami i znajdowania par do rozrodu. To ma wyglądać i działać jak
 **profesjonalne narzędzie branżowe** — nie jak aplikacja randkowa. Projekt akademicki, robiony przez
 4-osobowy zespół.
@@ -22,19 +22,19 @@ powiadomienia i ulubione.
 
 Każda warstwa odpowiada laboratoriom kursu — to ułatwia obronę kodu w trakcie przepytania.
 
-| Warstwa | Technologia | Powiązany lab |
-|---|---|---|
-| Szablony i wygląd | **Jinja2** (renderowane przez Flask) + **Bootstrap 5** | Lab 2, 3 |
-| Reaktywność i AJAX | **Alpine.js** + **Fetch API** | Lab 3, 4, 7 |
-| Czas rzeczywisty | **Socket.IO client** ↔ **Flask-SocketIO** | Lab 8 |
-| Backend | **Flask v3** + SQLAlchemy + Flask-Migrate + Flask-Login | Lab 5 |
-| Dokumentacja API | **Swagger** (`flasgger` / `spectree` / `flask-smorest` — narzędzie do potwierdzenia z Lab 6) | Lab 6 |
-| Walidacja | **Pydantic v2** (lub marshmallow, zgodnie z Lab 6) | Lab 6, 9 |
-| Bezpieczeństwo | argon2, Flask-Limiter, CSRF (Flask-WTF), zasady niżej | Lab 9 |
-| Mapa | **Leaflet** + OpenStreetMap | — |
-| Baza | **SQLite** (preinstalowane na AGH lab; Lab 9 demo też używa SQLite) | Lab 9 |
-| Pliki | Supabase Storage lub Cloudinary (HTTPS outbound), fallback: lokalny katalog na AGH lab | — |
-| Hosting | **AGH lab** (`*.lab.kis.agh.edu.pl`, „Proxy to standalone app server") | Lab 1 |
+ Warstwa | Technologia | Powiązany lab |
+---|---|---|
+ Szablony i wygląd | **Jinja2** (renderowane przez Flask) + **Bootstrap 5** | Lab 2, 3 |
+ Reaktywność i AJAX | **Alpine.js** + **Fetch API** | Lab 3, 4, 7 |
+ Czas rzeczywisty | **Socket.IO client** ↔ **Flask-SocketIO** | Lab 8 |
+ Backend | **Flask v3** + SQLAlchemy + Flask-Migrate + Flask-Login | Lab 5 |
+ Dokumentacja API | **Swagger** (`flasgger` / `spectree` / `flask-smorest` — narzędzie do potwierdzenia z Lab 6) | Lab 6 |
+ Walidacja | **Pydantic v2** (lub marshmallow, zgodnie z Lab 6) | Lab 6, 9 |
+ Bezpieczeństwo | argon2, Flask-Limiter, CSRF (Flask-WTF), zasady niżej | Lab 9 |
+ Mapa | **Leaflet** + OpenStreetMap | — |
+ Baza | **SQLite** (preinstalowane na AGH lab; Lab 9 demo też używa SQLite) | Lab 9 |
+ Pliki | Supabase Storage lub Cloudinary (HTTPS outbound), fallback: lokalny katalog na AGH lab | — |
+ Hosting | **AGH lab** (`*.lab.kis.agh.edu.pl`, „Proxy to standalone app server") | Lab 1 |
 
 ## Architektura wysokopoziomowa
 
@@ -67,19 +67,19 @@ Przeglądarka ──HTTPS──▶ Reverse-proxy uczelni ──/static──▶ 
 
 ```
 app/
-  __init__.py            create_app() — fabryka aplikacji Flask
-  models/                modele SQLAlchemy
-  schemas/               schematy Pydantic (walidacja wejścia)
-  routes/                blueprinty: auth, farms, animals, pedigree, match, chat, api
-  services/              logika domenowa (dopasowania, inbred, weryfikacja)
-  sockets/               handlery Flask-SocketIO (czat, powiadomienia)
-  templates/             szablony Jinja2 (Bootstrap + Alpine.js)
-  static/                CSS, JS, ikony — kopiowane do public_html/ na deployu
-migrations/              Alembic (Flask-Migrate)
-tests/                   pytest
-docs/                    dokumentacja (model danych, decyzje)
+  __init__.py            create_app() — fabryka aplikacji Flask.
+  models/                modele SQLAlchemy.
+  schemas/               schematy Pydantic (walidacja wejścia).
+  routes/                blueprinty: auth, farms, animals, pedigree, match, chat, api.
+  services/              logika domenowa (dopasowania, inbred, weryfikacja).
+  sockets/               handlery Flask-SocketIO (czat, powiadomienia).
+  templates/             szablony Jinja2 (Bootstrap + Alpine.js).
+  static/                CSS, JS, ikony — kopiowane do public_html/ na deployu.
+migrations/              Alembic (Flask-Migrate).
+tests/                   pytest.
+docs/                    dokumentacja (model danych, decyzje).
 requirements.txt
-wsgi.py                  punkt wejścia dla gunicorna (produkcja)
+wsgi.py                  punkt wejścia dla gunicorna (produkcja).
 .env.example
 ```
 
@@ -140,12 +140,12 @@ Prowadzący ocenia w szczególności **walidację danych wejściowych** i bezpie
 Każde z tych zagrożeń ma w aplikacji **świadomą przeciwwagę** — komentujemy ją w kodzie, żeby
 prowadzący zobaczył, że nie tylko nas to ominęło, ale wiemy „dlaczego" i „gdzie":
 
-| Lab 9 — moduł | Demo pokazuje | U nas |
-|---|---|---|
-| `sql.py` | f-string w zapytaniu → injection | wyłącznie SQLAlchemy ORM (parametryzacja); zero raw SQL |
-| `xss.py` | reflektowanie inputu jako HTML | Jinja2 z domyślnym auto-escape; **nigdy `|safe`** na danych użytkownika |
-| `csrf.py` | brak tokena → przejęcie sesji | Flask-WTF (token w sesji + walidacja); każdy POST ma token |
-| `lfi.py` | user-controlled path do `open()` | uploady i serwowanie plików zawsze przez **whitelist** typów MIME i ścieżek |
+ Lab 9 — moduł | Demo pokazuje | U nas |
+---|---|---|
+ `sql.py` | f-string w zapytaniu → injection | wyłącznie SQLAlchemy ORM (parametryzacja); zero raw SQL |
+ `xss.py` | reflektowanie inputu jako HTML | Jinja2 z domyślnym auto-escape; **nigdy `|safe`** na danych użytkownika |
+ `csrf.py` | brak tokena → przejęcie sesji | Flask-WTF (token w sesji + walidacja); każdy POST ma token |
+ `lfi.py` | user-controlled path do `open()` | uploady i serwowanie plików zawsze przez **whitelist** typów MIME i ścieżek |
 
 ## Reguły domenowe
 

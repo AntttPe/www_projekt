@@ -40,7 +40,7 @@ inbredu · powiadomienia i ulubione.
 python -m venv .venv
 source .venv/bin/activate              # Windows: .venv\Scripts\activate
 pip install -r requirements-dev.txt    # runtime + ruff/pytest/pre-commit
-pre-commit install                     # hooki: ruff, format, trailing-whitespace
+pre-commit inpython3 -m venv .venvstall                     # hooki: ruff, format, trailing-whitespace
 cp .env.example .env                   # uzupełnij SECRET_KEY (patrz niżej)
 
 # Migracje (jednorazowo przy świeżym repo / po dodaniu nowych modeli):
